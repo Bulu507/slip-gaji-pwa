@@ -1,22 +1,44 @@
-import { Outlet } from "react-router-dom"
+import { NavLink, Outlet } from "react-router-dom"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+type SidebarItemProps = {
+  to: string
+  label: string
+  end?: boolean
+}
+
+function SidebarItem({ to, label, end = false }: SidebarItemProps) {
+  return (
+    <NavLink to={to} end={end}>
+      {({ isActive }) => (
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-2",
+            isActive &&
+              "bg-accent text-accent-foreground font-medium border-l-4 border-primary pl-3"
+          )}
+        >
+          {label}
+        </Button>
+      )}
+    </NavLink>
+  )
+}
+
 
 export default function AppLayout() {
   return (
     <div className="flex h-screen bg-muted">
       {/* Sidebar */}
-      <aside className="w-64 bg-background border-r flex flex-col">
-        <div className="h-14 flex items-center px-4 border-b font-semibold">
-          Slip Gaji
-        </div>
-        <nav className="flex-1 p-2 space-y-1">
-          <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
-          <Button variant="ghost" className="w-full justify-start">Pegawai</Button>
-          <Button variant="ghost" className="w-full justify-start">Import Gaji</Button>
-          <Button variant="ghost" className="w-full justify-start">Import Tunkin</Button>
-          <Button variant="ghost" className="w-full justify-start">Slip Gaji</Button>
-          <Button variant="ghost" className="w-full justify-start">Backup & Restore</Button>
-        </nav>
+      <aside className="w-64 border-r bg-background p-4 space-y-2">
+        <h2 className="mb-4 text-lg font-semibold">Payroll App</h2>
+
+        <SidebarItem to="/" label="Dashboard" end />
+        <SidebarItem to="/employees" label="Pegawai" />
+        <SidebarItem to="/salary" label="Salary Data" />
+        <SidebarItem to="/payslip" label="Payslips" />
       </aside>
 
       {/* Main Content */}
