@@ -8,9 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useState } from "react"
-import { EmployeeImport } from "../components/EmployeeImport"
-import { Modal } from "@/components/ui/modal"
 import { useNavigate } from "react-router-dom"
 
 const dummyEmployees = [
@@ -29,7 +26,6 @@ const dummyEmployees = [
 ]
 
 export default function EmployeesPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate()
 
   async function handleImport() {
@@ -38,11 +34,6 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-4">
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <h2 className="text-lg font-semibold mb-4">Import Employee Data</h2>
-        <EmployeeImport onImport={handleImport} />
-      </Modal>
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Employees</h1>

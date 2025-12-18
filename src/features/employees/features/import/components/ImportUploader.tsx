@@ -1,42 +1,22 @@
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import type { ChangeEvent } from "react"
+import { Input } from "@/components/ui/input";
 
-type Props = {
-  onFileSelected: (file: File) => void
-}
-
-export default function ImportUploader({ onFileSelected }: Props) {
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (!file.name.endsWith(".xlsx")) {
-      alert("File harus berformat .xlsx")
-      return
-    }
-
-    onFileSelected(file)
-  }
-
+export function ImportUploader({
+  onFileSelected,
+}: {
+  onFileSelected: (file: File) => void;
+}) {
   return (
-    <Card className="p-6 space-y-4">
-      <div>
-        <h3 className="font-semibold">Upload File Excel</h3>
-        <p className="text-sm text-muted-foreground">
-          Format .xlsx sesuai template pegawai
-        </p>
-      </div>
+    <div className="border bg-background rounded-lg p-6 space-y-4">
+      <h3 className="font-semibold text-lg">Upload Excel Pegawai</h3>
 
-      <input
+      <Input
         type="file"
-        accept=".xlsx"
-        onChange={handleChange}
+        accept=".xlsx,.xls"
+        onChange={e => {
+          const file = e.target.files?.[0];
+          if (file) onFileSelected(file);
+        }}
       />
-
-      <Button variant="secondary">
-        Pilih File
-      </Button>
-    </Card>
-  )
+    </div>
+  );
 }

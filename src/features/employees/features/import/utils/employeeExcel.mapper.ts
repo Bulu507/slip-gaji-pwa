@@ -5,10 +5,10 @@ export function mapExcelRow(
   rowNumber: number
 ): ImportedEmployee {
   return {
+    id: String(row["nip"] ?? "").trim(),
+    name: String(row["nama"] ?? "").trim(),
+    position: String(row["jabatan"] ?? "").trim(),
+    typeUser: String(row["tipe_user"] ?? "").trim(),
     rowNumber,
-    id: String(row["NIP"] ?? "").trim(),
-    name: String(row["Nama"] ?? "").trim(),
-    position: String(row["Jabatan"] ?? "").trim(),
-    typeUser: String(row["Tipe ASN"] ?? "")
-  }
+  };
 }

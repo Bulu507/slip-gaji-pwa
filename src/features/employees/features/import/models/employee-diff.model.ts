@@ -1,24 +1,23 @@
-import type { Employee } from "@/features/employees/models/employee.model"
-import type { ImportedEmployee } from "./employee-import.model"
+import type { Employee } from "@/features/employees/models/employee.model";
+import type { ImportedEmployee } from "./employee-import.model";
 
 export type DiffStatus =
   | "NEW"
   | "UNCHANGED"
-  | "UPDATED"
-  | "CONFLICT"
+  | "UPDATED";
 
 export interface EmployeeDiff {
-  id: string
-  status: DiffStatus
+  id: string;
+  status: DiffStatus;
 
-  existing?: Employee
-  incoming: ImportedEmployee
+  existing?: Employee;
+  incoming: ImportedEmployee;
 
   changedFields?: Array<{
-    field: keyof Employee
-    oldValue: unknown
-    newValue: unknown
-  }>
+    field: keyof Employee;
+    oldValue: unknown;
+    newValue: unknown;
+  }>;
 
-  approved?: boolean
+  approved?: boolean;
 }

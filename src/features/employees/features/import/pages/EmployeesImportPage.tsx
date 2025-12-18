@@ -1,101 +1,87 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import type { ImportedEmployee } from "../models/employee-import.model"
-import type { EmployeeDiff } from "../models/employee-diff.model"
-import type { Employee } from "@/features/employees/models/employee.model"
-import { parseEmployeeExcel } from "../services/employeeImport.parser"
-import { generateEmployeeDiff } from "../services/employeeDiff.service"
-import ImportUploader from "../components/importUploader"
-import ImportSummary from "../components/ImportSummary"
-import SafeEmployeeTable from "../components/SafeEmployeeTable"
-import ConflictEmployeeTable from "../components/ConflictEmployeeTable"
-import ImportModeSelector from "../components/importModeSelector"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function EmployeesImportPage() {
-  /** MODE: replace / update */
-  const [importMode, setImportMode] = useState<"REPLACE" | "UPDATE">("UPDATE")
+// import { ImportHeader } from "../components/ImportHeader";
+import { ReplaceReviewTable } from "../components/ReplaceReviewTable";
+import { UpdateReviewTable } from "../components/UpdateReviewTable";
+import { ImportActions } from "../components/ImportActions";
 
-  /** RAW DATA */
-  const [importedEmployees, setImportedEmployees] = useState<ImportedEmployee[]>([])
+import { parseEmployeeExcel } from "../services/employeeImport.parser";
+import { buildUpdateDiffs } from "../services/employeeUpdate.service";
 
-  /** DIFF RESULT */
-  const [safeEmployees, setSafeEmployees] = useState<EmployeeDiff[]>([])
-  const [conflictEmployees, setConflictEmployees] = useState<EmployeeDiff[]>([])
+import type { ImportMode } from "../types/import-mode.type";
+import type { EmployeeDiff } from "../models/employee-diff.model";
+import { buildReplacePreview } from "../services/employeReplace.service";
+import { ImportUploader } from "../components/importUploader";
+import { ImportHeader } from "../components/ImportHeader";
 
-  /** MOCK DATA EXISTING (sementara) */
-  const existingEmployees: Employee[] = [
-    {
-      id: "123",
-      name: "Budi",
-      position: "Staff IT"
-    }
-  ]
+export default function EmployeesImportPage({
+  mode,
+}: {
+  mode: ImportMode;
+}) {
+  const navigate = useNavigate();
 
-  async function handleFileUpload(file: File) {
-    const imported = await parseEmployeeExcel(file)
-    setImportedEmployees(imported)
+  const [step, setStep] = useState<"UPLOAD" | "REVIEW">("UPLOAD");
+  const [rows, setRows] = useState<EmployeeDiff[]>([]);
 
-    const { safe, conflicts } = generateEmployeeDiff(existingEmployees, imported)
-    setSafeEmployees(safe)
-    setConflictEmployees(conflicts)
+  async function handleUpload(file: File) {
+    const imported = await parseEmployeeExcel(file);
+
+    const preview =
+      mode === "REPLACE"
+        ? buildReplacePreview(imported)
+        : buildUpdateDiffs([], imported);
+
+    console.log('===== SHOW DATA', preview);
+    
+    setRows(preview);
+    setStep("REVIEW");
   }
 
-  function handleApproveConflict(id: string, approved: boolean) {
-    setConflictEmployees(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, approved } : item
+  function handleCancel() {
+    // ⬅️ kembali ke kondisi awal
+    setRows([]);
+    setStep("UPLOAD");
+  }
+
+  function handleToggle(id: string) {    
+    setRows(r =>
+      r.map(row =>
+        row.id === id ? { ...row, approved: !row.approved } : row
       )
-    )
+    );
+  }
+
+  function handleSave() {
+    // TODO: simpan rows.filter(r => r.approved)
+    navigate("/employees");
   }
 
   return (
     <div className="space-y-6">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-2xl font-semibold">Import Pegawai</h1>
-        <p className="text-sm text-muted-foreground">
-          Upload data pegawai dari Excel dan review sebelum disimpan
-        </p>
-      </div>
+      {/* Header */}
+      <ImportHeader />
 
-      {/* MODE */}
-      <ImportModeSelector
-        value={importMode}
-        onChange={setImportMode}
-      />
-
-      {/* UPLOADER */}
-      <ImportUploader onFileSelected={handleFileUpload} />
-
-      {/* SUMMARY */}
-      {importedEmployees.length > 0 && (
-        <ImportSummary
-          total={importedEmployees.length}
-          safe={safeEmployees.length}
-          conflict={conflictEmployees.length}
-        />
+      {/* Content */}
+      {step === "UPLOAD" && (
+        <ImportUploader onFileSelected={handleUpload} />
       )}
 
-      {/* SAFE DATA */}
-      {safeEmployees.length > 0 && (
-        <SafeEmployeeTable data={safeEmployees} />
-      )}
+      {step === "REVIEW" && (
+        <>
+          {mode === "REPLACE" ? (
+            <ReplaceReviewTable rows={rows} />
+          ) : (
+            <UpdateReviewTable rows={rows} onToggle={handleToggle} />
+          )}
 
-      {/* CONFLICT DATA */}
-      {conflictEmployees.length > 0 && (
-        <ConflictEmployeeTable
-          data={conflictEmployees}
-          onApprove={handleApproveConflict}
-        />
-      )}
-
-      {/* ACTION */}
-      {(safeEmployees.length > 0 || conflictEmployees.length > 0) && (
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary">Cancel</Button>
-          <Button>Continue</Button>
-        </div>
+          <ImportActions
+            onCancel={handleCancel}
+            onSave={handleSave}
+          />
+        </>
       )}
     </div>
-  )
+  );
 }
