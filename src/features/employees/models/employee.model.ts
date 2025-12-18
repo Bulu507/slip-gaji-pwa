@@ -1,10 +1,7 @@
-export interface Employee {
-  id: string
-  name: string
-  position: string
-  grade: string
-  salaryCode: string
-  lastKgbDate: string
-  directorate: string
-  asnType: string
-}
+export type Employee = {
+  id: string;        // NIP/NRP sebagai kode unik
+  name: string;
+  position?: string;
+  typeUser?: string;
+  // tambahkan field lain sesuai kebutuhan
+};
