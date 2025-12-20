@@ -1,7 +1,7 @@
 export type Employee = {
-  id: string;        // NIP/NRP sebagai kode unik
+  nip: string;
   name: string;
-  position?: string;
-  typeUser?: string;
-  // tambahkan field lain sesuai kebutuhan
+  position: string;
+  unit: string;
+  type: string;
 };

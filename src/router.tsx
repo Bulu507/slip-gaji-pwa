@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom"
 import AppLayout from "@/layouts/AppLayout"
 import DashboardPage from "@/features/dashboard/pages/DashboardPage"
 import EmployeesPage from "@/features/employees/pages/EmployeesPage"
-import EmployeeImportPage from "@employees/features/import/pages/EmployeesImportPage"
+import EmployeeImportPage from "./features/employees/features/import/pages/EmployeeImportPage"
 
 export const router = createBrowserRouter([
   {
