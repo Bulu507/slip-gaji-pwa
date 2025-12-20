@@ -1,46 +1,60 @@
-import type { ImportMode, PreviewEmployee } from "../models/import.model"
-import { parseExcelFile } from "./excel-parser.service"
-import { compareEmployees } from "./employee-compare.service"
-import { validateDuplicateNip } from "./employee-validation.service"
+import type {
+  ImportMode,
+  ImportError,
+  PreviewEmployee,
+} from "../models/import.model"
 import type { Employee } from "@/features/employees/models/employee.model"
+
+import { parseEmployeeExcel } from "./excel-parser.service"
+import { compareEmployees } from "./employee-compare.service"
+
+type ImportResult =
+  | { data: PreviewEmployee[]; error?: never }
+  | { data?: never; error: ImportError }
 
 export async function importEmployeeFromExcel(
   file: File,
   mode: ImportMode,
   existingEmployees: Employee[]
-): Promise<{
-  data?: PreviewEmployee[]
-  error?: {
-    type: "DUPLICATE_NIP"
-    duplicatedNips: string[]
-  }
-}> {
-  // 1. Parse Excel
-  const excelRows = await parseExcelFile(file)
+): Promise<ImportResult> {
+  const rows = await parseEmployeeExcel(file)
 
-  // 2. Validasi NIP ganda
-  const duplicatedNips = validateDuplicateNip(excelRows)
-  if (duplicatedNips.length > 0) {
+  /** cek duplicate nip di file */
+  const nipSet = new Set<string>()
+  const duplicated: string[] = []
+
+  rows.forEach((r) => {
+    if (nipSet.has(r.nip)) duplicated.push(r.nip)
+    nipSet.add(r.nip)
+  })
+
+  if (duplicated.length > 0) {
     return {
       error: {
         type: "DUPLICATE_NIP",
-        duplicatedNips,
+        duplicatedNips: duplicated,
       },
     }
   }
 
-  // 3. Replace
+  /** mapping Excel → PreviewEmployee */
+  const mapped: PreviewEmployee[] = rows.map((r) => ({
+    employeeId: r.nip,
+    name: r.nama,
+    grade: r.golongan,
+    gradeName: r.nama_golongan,
+    jobTitle: r.jabatan,
+    baseSalaryCode: r.kdgapok,
+    maritalStatusCode: r.kdkawin,
+    position: r.posisi,
+    unit: r.unit,
+    employmentType: r.tipe,
+  }))
+
   if (mode === "replace") {
-    return {
-      data: excelRows.map((row) => ({
-        ...row,
-        action: "new",
-      })),
-    }
+    return { data: mapped }
   }
 
-  // 4. Update
-  return {
-    data: compareEmployees(excelRows, existingEmployees),
-  }
+  const compared = compareEmployees(mapped, existingEmployees)
+  return { data: compared }
 }

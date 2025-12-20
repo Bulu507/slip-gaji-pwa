@@ -1,28 +1,33 @@
-import type { ExcelEmployeeRow, PreviewEmployee } from "../models/import.model"
+import type { PreviewEmployee } from "../models/import.model"
 import type { Employee } from "@/features/employees/models/employee.model"
 
 export function compareEmployees(
-  excelRows: ExcelEmployeeRow[],
-  existingEmployees: Employee[]
+  incoming: PreviewEmployee[],
+  existing: Employee[]
 ): PreviewEmployee[] {
   const map = new Map<string, Employee>()
-  existingEmployees.forEach((e) => map.set(e.nip, e))
+  existing.forEach((e) => map.set(e.employeeId, e))
 
-  return excelRows.map((row) => {
-    const existing = map.get(row.nip)
+  return incoming.map((emp) => {
+    const old = map.get(emp.employeeId)
 
-    if (!existing) {
-      return { ...row, action: "new" }
+    if (!old) {
+      return { ...emp, action: "new" }
     }
 
     const isChanged =
-      existing.name !== row.name ||
-      existing.position !== row.position ||
-      existing.unit !== row.unit ||
-      existing.type !== row.type
+      old.name !== emp.name ||
+      old.grade !== emp.grade ||
+      old.gradeName !== emp.gradeName ||
+      old.jobTitle !== emp.jobTitle ||
+      old.baseSalaryCode !== emp.baseSalaryCode ||
+      old.maritalStatusCode !== emp.maritalStatusCode ||
+      old.position !== emp.position ||
+      old.unit !== emp.unit ||
+      old.employmentType !== emp.employmentType
 
     return {
-      ...row,
+      ...emp,
       action: isChanged ? "update" : "same",
     }
   })

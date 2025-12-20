@@ -40,6 +40,9 @@ export default function EmployeeImportPage() {
   const hasPreview = previewData.length > 0
   const isUpdateMode = mode === "update"
 
+  /* =========================
+   * FILE UPLOAD
+   * ========================= */
   async function handleFileUpload(file: File) {
     if (!mode) return
 
@@ -77,17 +80,25 @@ export default function EmployeeImportPage() {
     }
   }
 
+  /* =========================
+   * COMMIT DATA
+   * ========================= */
   function handleCommit() {
     if (!mode || previewData.length === 0) return
 
     const employeesToSave: Employee[] = previewData
       .filter((p) => mode === "replace" || p.action !== "same")
       .map((p) => ({
-        nip: p.nip,
+        employeeId: p.employeeId,
         name: p.name,
-        unit: p.unit,
+        grade: p.grade,
+        gradeName: p.gradeName,
         position: p.position,
-        type: p.type,
+        baseSalaryCode: p.baseSalaryCode,
+        maritalStatusCode: p.maritalStatusCode,
+        jobTitle: p.jobTitle,
+        unit: p.unit,
+        employmentType: p.employmentType,
       }))
 
     if (mode === "replace") {
@@ -100,6 +111,9 @@ export default function EmployeeImportPage() {
     navigate("/employees", { replace: true })
   }
 
+  /* =========================
+   * RESET
+   * ========================= */
   function resetImportState() {
     setMode(null)
     setPreviewData([])
@@ -129,7 +143,7 @@ export default function EmployeeImportPage() {
           </p>
         </div>
 
-        <Button variant="destructive" size="sm" onClick={() => navigate(-1)}>
+        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Kembali
         </Button>
@@ -198,7 +212,7 @@ export default function EmployeeImportPage() {
       {/* PREVIEW */}
       {hasPreview && (
         <>
-          {/* SUMMARY */}
+          {/* SUMMARY (ONLY UPDATE MODE) */}
           {isUpdateMode && <ImportSummaryBox data={previewData} />}
 
           {/* ACTION */}
@@ -225,14 +239,15 @@ export default function EmployeeImportPage() {
                   )}
                   <th className="px-3 py-2 text-left">NIP</th>
                   <th className="px-3 py-2 text-left">Nama</th>
-                  <th className="px-3 py-2 text-left">Unit</th>
+                  <th className="px-3 py-2 text-left">Golongan</th>
                   <th className="px-3 py-2 text-left">Jabatan</th>
+                  <th className="px-3 py-2 text-left">Unit</th>
                   <th className="px-3 py-2 text-left">Tipe</th>
                 </tr>
               </thead>
               <tbody>
                 {previewData.map((emp) => (
-                  <tr key={emp.nip} className="border-t">
+                  <tr key={emp.employeeId} className="border-t">
                     {isUpdateMode && (
                       <td className="px-3 py-2">
                         {emp.action === "new" && (
@@ -252,11 +267,12 @@ export default function EmployeeImportPage() {
                         )}
                       </td>
                     )}
-                    <td className="px-3 py-2">{emp.nip}</td>
+                    <td className="px-3 py-2">{emp.employeeId}</td>
                     <td className="px-3 py-2">{emp.name}</td>
-                    <td className="px-3 py-2">{emp.unit}</td>
+                    <td className="px-3 py-2">{emp.gradeName}</td>
                     <td className="px-3 py-2">{emp.position}</td>
-                    <td className="px-3 py-2">{emp.type}</td>
+                    <td className="px-3 py-2">{emp.unit}</td>
+                    <td className="px-3 py-2">{emp.employmentType}</td>
                   </tr>
                 ))}
               </tbody>

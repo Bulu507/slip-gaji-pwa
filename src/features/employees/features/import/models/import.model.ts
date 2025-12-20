@@ -1,20 +1,47 @@
 export type ImportMode = "replace" | "update"
 
+/**
+ * Bentuk MENTAH dari Excel
+ * SESUAI kolom Excel
+ */
 export type ExcelEmployeeRow = {
   nip: string
-  name: string
-  position: string
+  nama: string
+  golongan: string
+  nama_golongan: string
+  jabatan: string
+  kdgapok: string
+  kdkawin: string
+  posisi: string
   unit: string
-  type: string
+  tipe: string
 }
 
+/**
+ * Action hasil compare
+ */
 export type ImportAction = "new" | "update" | "same"
 
-export type PreviewEmployee = ExcelEmployeeRow & {
+/**
+ * Preview data (SUDAH DIMAPPING ke model internal)
+ */
+export type PreviewEmployee = {
+  employeeId: string
+  name: string
+  grade: string
+  gradeName: string
+  jobTitle: string
+  baseSalaryCode: string
+  maritalStatusCode: string
+  position: string
+  unit: string
+  employmentType: string
   action?: ImportAction
 }
 
-/** Error khusus import */
+/**
+ * Error import
+ */
 export type ImportError = {
   type: "DUPLICATE_NIP"
   duplicatedNips: string[]

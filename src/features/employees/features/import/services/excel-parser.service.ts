@@ -1,24 +1,29 @@
-import * as XLSX from "xlsx";
-import type { ExcelEmployeeRow } from "../models/import.model";
+import * as XLSX from "xlsx"
+import type { ExcelEmployeeRow } from "../models/import.model"
 
-export async function parseExcelFile(
-  file: File
-): Promise<ExcelEmployeeRow[]> {
-  const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer);
+export function parseEmployeeExcel(file: File): Promise<ExcelEmployeeRow[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
 
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer)
+        const workbook = XLSX.read(data, { type: "array" })
 
-  const json = XLSX.utils.sheet_to_json<ExcelEmployeeRow>(sheet, {
-    defval: "",
-  });
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
 
-  return json.map((row) => ({
-    nip: String(row.nip).trim(),
-    name: String(row.name).trim(),
-    position: String(row.position).trim(),
-    unit: String(row.unit).trim(),
-    type: String(row.type).trim(),
-  }));
+        const json = XLSX.utils.sheet_to_json<ExcelEmployeeRow>(worksheet, {
+          defval: "",
+        })
+
+        resolve(json)
+      } catch (err) {
+        reject(err)
+      }
+    }
+
+    reader.onerror = () => reject(reader.error)
+    reader.readAsArrayBuffer(file)
+  })
 }
