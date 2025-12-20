@@ -143,7 +143,7 @@ export default function EmployeeImportPage() {
           </p>
         </div>
 
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+        <Button variant="destructive" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Kembali
         </Button>
