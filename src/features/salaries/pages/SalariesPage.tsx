@@ -2,6 +2,8 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableHead, TableRow, TableCell } from "@/components/ui/table"
 import type { SalaryPeriod } from "../models/salary-period.model"
+import { Upload } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 const mockPeriods: SalaryPeriod[] = [
   {
@@ -15,11 +17,23 @@ const mockPeriods: SalaryPeriod[] = [
 ]
 
 export default function SalariesPage() {
+  const navigate = useNavigate()
+
   return (
-    <div className="space-y-4">
+   <div className="space-y-6">
+      {/* HEADER */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Gaji</h1>
-        <Button>Import Gaji</Button>
+        <div>
+          <h1 className="text-2xl font-semibold">Gaji</h1>
+          <p className="text-sm text-muted-foreground">
+            Kelola data Gaji
+          </p>
+        </div>
+
+        <Button variant="outline" onClick={() => navigate("/salary/import")}>
+          <Upload className="mr-2 h-4 w-4" />
+          Import Gaji
+        </Button>
       </div>
 
       <Card>
