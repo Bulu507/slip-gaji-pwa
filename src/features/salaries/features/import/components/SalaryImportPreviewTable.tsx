@@ -10,9 +10,10 @@ import {
 
 type Props = {
   rows: SalaryImportPreviewRow[]
+  mode: string,
 }
 
-export function SalaryImportPreviewTable({ rows }: Props) {
+export function SalaryImportPreviewTable({ rows, mode }: Props) {
   return (
     <Table>
       <TableHeader>
@@ -21,7 +22,7 @@ export function SalaryImportPreviewTable({ rows }: Props) {
           <TableHead>Nama</TableHead>
           <TableHead>Gaji Pokok</TableHead>
           <TableHead>Bersih</TableHead>
-          <TableHead>Status</TableHead>
+          {mode === "update" && <TableHead>Status</TableHead>}
         </TableRow>
       </TableHeader>
 
@@ -50,7 +51,7 @@ export function SalaryImportPreviewTable({ rows }: Props) {
               <TableCell>{row.nmpeg}</TableCell>
               <TableCell>{row.gjpokok}</TableCell>
               <TableCell>{row.bersih}</TableCell>
-              <TableCell className={statusClass}>{statusLabel}</TableCell>
+              {mode === "update" && <TableCell className={statusClass}>{statusLabel}</TableCell>}
             </TableRow>
           )
         })}
