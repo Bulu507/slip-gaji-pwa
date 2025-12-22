@@ -1,17 +1,31 @@
 // features/salaries/features/import/services/salary-import.service.ts
 
 import type { SalaryRaw } from "@/features/salaries/models/salary.model"
-import type { SalaryImportHeader, SalaryImportResult } from "../models/salary-import.model"
-import { validateDuplicateNipInFile, validateSalaryImportHeader, validateSalaryPeriodConsistency } from "./salary-validation.service"
+import type {
+  SalaryImportHeader,
+  SalaryImportResult,
+} from "../models/salary-import.model"
+import {
+  validateDuplicateNipInFile,
+  validateSalaryImportHeader,
+  validateSalaryPeriodConsistency,
+} from "./salary-validation.service"
 import type { SalaryPeriod } from "@/features/salaries/models/salary-period.model"
-
-
 
 /**
  * Helper key periode: 2025-12
  */
 function buildPeriodKey(tahun: number, bulan: number): string {
   return `${tahun}-${String(bulan).padStart(2, "0")}`
+}
+
+/**
+ * Compare dua data salary (shallow)
+ */
+function isSalaryChanged(a: SalaryRaw, b: SalaryRaw): boolean {
+  return Object.keys(a).some(
+    (key) => a[key as keyof SalaryRaw] !== b[key as keyof SalaryRaw]
+  )
 }
 
 /**
@@ -35,14 +49,12 @@ export function importSalary(
   // =========================
   // 2. LOAD EXISTING DATA
   // =========================
-  const existingRaw =
-    localStorage.getItem(storageKey)
-      ? (JSON.parse(localStorage.getItem(storageKey)!) as SalaryRaw[])
-      : []
+  const existingRaw: SalaryRaw[] = localStorage.getItem(storageKey)
+    ? JSON.parse(localStorage.getItem(storageKey)!)
+    : []
 
   let inserted = 0
   let updated = 0
-
   let finalData: SalaryRaw[] = []
 
   // =========================
@@ -55,18 +67,25 @@ export function importSalary(
 
   if (mode === "update") {
     const existingMap = new Map<string, SalaryRaw>()
+
     for (const item of existingRaw) {
       existingMap.set(item.nip, item)
     }
 
     for (const row of rows) {
-      if (existingMap.has(row.nip)) {
-        existingMap.set(row.nip, row)
-        updated++
-      } else {
+      const existing = existingMap.get(row.nip)
+
+      if (!existing) {
         existingMap.set(row.nip, row)
         inserted++
+        continue
       }
+
+      if (isSalaryChanged(existing, row)) {
+        existingMap.set(row.nip, row)
+        updated++
+      }
+      // jika tidak berubah → biarkan existing
     }
 
     finalData = Array.from(existingMap.values())

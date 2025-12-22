@@ -1,51 +1,31 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Select } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
+import type { SalaryImportPreviewRow } from "../models/salary-import-preview.model"
 
 type Props = {
-  value: {
-    bulan: number
-    tahun: number
-    mode: "replace" | "update"
-  }
-  onChange: (v: Props["value"]) => void
+  data: SalaryImportPreviewRow[]
+  mode: string,
 }
 
-export default function SalaryImportHeader({ value, onChange }: Props) {
+export function SalaryImportHeader({ data, mode }: Props) {
+  const total = data.length
+  const newCount = data.filter((d) => d.action === "new").length
+  const updateCount = data.filter((d) => d.action === "update").length
+
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <Select
-        value={String(value.bulan)}
-        onValueChange={(v) =>
-          onChange({ ...value, bulan: Number(v) })
-        }
-      >
-        <option value="">Bulan</option>
-        {Array.from({ length: 12 }).map((_, i) => (
-          <option key={i + 1} value={i + 1}>
-            {i + 1}
-          </option>
-        ))}
-      </Select>
-
-      <Input
-        type="number"
-        placeholder="Tahun"
-        value={value.tahun || ""}
-        onChange={(e) =>
-          onChange({ ...value, tahun: Number(e.target.value) })
-        }
-      />
-
-      <Select
-        value={value.mode}
-        onValueChange={(v) =>
-          onChange({ ...value, mode: v as any })
-        }
-      >
-        <option value="replace">Replace</option>
-        <option value="update">Update</option>
-      </Select>
+    <div className="bg-background flex gap-6 rounded-lg border p-4 text-sm">
+      <div>
+        <p className="text-muted-foreground">Total Data</p>
+        <p className="font-semibold">{total}</p>
+      </div>
+      { mode === "update" && <>
+        <div>
+          <p className="text-muted-foreground">Data Baru</p>
+          <p className="font-semibold text-green-600">{newCount}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Data Berubah</p>
+          <p className="font-semibold text-orange-600">{updateCount}</p>
+        </div>
+      </>}
     </div>
   )
 }

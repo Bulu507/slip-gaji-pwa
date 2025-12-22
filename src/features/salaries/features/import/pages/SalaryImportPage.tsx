@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Upload } from "lucide-react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -11,34 +10,101 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
 
 import type { SalaryImportMode } from "../models/salary-import.model";
+
 import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant";
 import { YEAR_OPTIONS } from "@/lib/constants/year-option.constant";
+
+import { parseSalaryExcel } from "../services/salary-excel-parser.service";
+import { validateSalaryPreview } from "../services/salary-preview-validation.service";
+import { importSalary } from "../services/salary-import.service";
+import { SalaryImportPreviewTable } from "../components/SalaryImportPreviewTable";
+import type { SalaryImportPreviewRow } from "../models/salary-import-preview.model";
+import { compareSalaryPreview } from "../services/salary-compare.service";
+import { SalaryImportHeader } from "../components/SalaryImportHeader";
+
+type Step = "form" | "preview";
 
 export default function SalaryImportPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [step, setStep] = useState<Step>("form");
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+
   const [bulan, setBulan] = useState<number | "">("");
   const [tahun, setTahun] = useState<number | "">("");
   const [mode, setMode] = useState<SalaryImportMode>("replace");
 
-  const isPeriodReady = bulan !== "" && tahun !== "" && tahun >= 2000 && !!mode;
+  const [previewRows, setPreviewRows] = useState<SalaryImportPreviewRow[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
+  const isPeriodReady = bulan !== "" && tahun !== "" && !!mode;
   const isReady = isPeriodReady && !!file;
 
-  const handleFileUpload = (file: File) => {
-    setFile(file);
+  // =========================
+  // HANDLER: PREVIEW
+  // =========================
+  const handlePreview = async () => {
+    if (!file || bulan === "" || tahun === "") return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const rows = await parseSalaryExcel(file, {
+        bulan: bulan as number,
+        tahun: tahun as number,
+      });
+
+      validateSalaryPreview(rows, {
+        bulan: bulan as number,
+        tahun: tahun as number,
+      });
+
+      // ✅ COMPARE STATUS (new / update)
+      const preview = compareSalaryPreview(rows, {
+        bulan: bulan as number,
+        tahun: tahun as number,
+      });
+
+      setPreviewRows(preview);
+      setStep("preview");
+    } catch (err) {
+      setFile(null);
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleImport = () => {
-    if (!isReady) return;
+  // =========================
+  // HANDLER: SAVE
+  // =========================
+  const handleSave = () => {
+    // importSalary(
+    //   { bulan: bulan as number, tahun: tahun as number, mode },
+    //   previewRows
+    // );
 
-    console.log({ file, bulan, tahun, mode });
+    importSalary(
+      { bulan: bulan as number, tahun: tahun as number, mode },
+      previewRows.map(({ action, ...row }) => row)
+    );
+
+    navigate("/salary");
+  };
+
+  // =========================
+  // HANDLER: CANCEL
+  // =========================
+  const handleCancel = () => {
+    setStep("form");
+    setPreviewRows([]);
+    setFile(null);
+    setError(null);
   };
 
   return (
@@ -61,12 +127,11 @@ export default function SalaryImportPage() {
         </Button>
       </div>
 
-      {/* FORM */}
-      <div className="p-6 space-y-6">
-        {/* PERIODE */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Periode / Bulan</label>
+      {/* ================= FORM ================= */}
+      {step === "form" && (
+        <div className="space-y-6">
+          {/* PERIODE */}
+          <div className="grid grid-cols-2 gap-4">
             <Select
               value={bulan !== "" ? String(bulan) : ""}
               onValueChange={(v) => setBulan(Number(v))}
@@ -82,10 +147,7 @@ export default function SalaryImportPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tahun</label>
             <Select
               value={tahun !== "" ? String(tahun) : ""}
               onValueChange={(v) => setTahun(Number(v))}
@@ -102,11 +164,8 @@ export default function SalaryImportPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* MODE */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Mode Import</label>
+          {/* MODE */}
           <Select
             value={mode}
             onValueChange={(v) => setMode(v as SalaryImportMode)}
@@ -115,53 +174,56 @@ export default function SalaryImportPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="replace">
-                Ganti seluruh data periode
-              </SelectItem>
+              <SelectItem value="replace">Ganti seluruh data</SelectItem>
               <SelectItem value="update">Update / tambah per NIP</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* FILE */}
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              disabled={!isPeriodReady}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {file ? file.name : "Pilih File Excel"}
+            </Button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx"
+              hidden
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
+          <div className="flex justify-end">
+            <Button disabled={!isReady || loading} onClick={handlePreview}>
+              Cek & Preview
+            </Button>
+          </div>
         </div>
+      )}
 
-        {/* FILE */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">File Excel</label>
+      {/* ================= PREVIEW ================= */}
+      {step === "preview" && (
+        <div className="space-y-4">
+          <SalaryImportHeader data={previewRows} mode={mode} />
 
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            disabled={!isPeriodReady || loading}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {file ? file.name : "Pilih File Excel"}
-          </Button>
+          <SalaryImportPreviewTable rows={previewRows} />
 
-          {!isPeriodReady && (
-            <p className="text-xs text-muted-foreground">
-              Pilih bulan, tahun, dan mode terlebih dahulu
-            </p>
-          )}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileUpload(file);
-            }}
-          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCancel}>
+              Batalkan
+            </Button>
+            <Button onClick={handleSave}>Simpan</Button>
+          </div>
         </div>
-
-        {/* ACTION */}
-        <div className="flex justify-end">
-          <Button disabled={!isReady} onClick={handleImport}>
-            Import Gaji
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
