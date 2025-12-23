@@ -189,13 +189,13 @@ export default function SalaryImportPage() {
               </SelectContent>
             </Select>
             {mode === "replace" && (
-              <p className="text-xs">
-                Mode ini akan mengganti seluruh data gaji pada periode yang dipilih.
+              <p className="text-xs text-destructive">
+                *Mode ini akan mengganti seluruh data gaji pada periode yang dipilih.
               </p>
             )}
             {mode === "update" && (
-              <p className="text-xs">
-                Mode ini hanya akan menambah atau mengupdate data gaji sesuai NIP.
+              <p className="text-xs text-destructive">
+                *Mode ini hanya akan menambah atau mengupdate data gaji sesuai NIP.
               </p>
             )}
           </div>

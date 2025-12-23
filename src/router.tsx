@@ -5,6 +5,7 @@ import EmployeesPage from "@/features/employees/pages/EmployeesPage"
 import EmployeeImportPage from "./features/employees/features/import/pages/EmployeeImportPage"
 import SalariesPage from "./features/salaries/pages/SalariesPage"
 import SalaryImportPage from "./features/salaries/features/import/pages/SalaryImportPage"
+import SalaryDetailPage from "./features/salaries/features/detail/pages/SalaryDetailPage"
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
       { path: "/employees/import", element: <EmployeeImportPage /> },
       { path: "/salary", element: <SalariesPage /> },
       { path: "/salary/import", element: <SalaryImportPage /> },
+      { path: "/salary/detail/:periodId", element: <SalaryDetailPage /> },
     ],
   },
 ])
