@@ -3,6 +3,9 @@ import { validateDuplicateNipInFile } from "./salary-validation.service";
 
 /**
  * Validasi data preview salary (sebelum compare & simpan)
+ * NOTE:
+ * - Fokus ke identitas & periode
+ * - Tidak validasi field finansial
  */
 export function validateSalaryPreview(
   rows: SalaryRaw[],
@@ -12,66 +15,34 @@ export function validateSalaryPreview(
     throw new Error("Data gaji kosong");
   }
 
+  // ✅ Tetap: NIP tidak boleh duplikat
   validateDuplicateNipInFile(rows);
 
-  for (const row of rows) {
+  for (const [index, row] of rows.entries()) {
+    // === VALIDASI IDENTITAS ===
+    if (!row.nip || String(row.nip).trim() === "") {
+      throw new Error(`NIP kosong pada baris ke-${index + 1}`);
+    }
+
+    // === VALIDASI PERIODE (DEFENSIVE) ===
     const rowBulan = Number(row.bulan);
     const rowTahun = Number(row.tahun);
 
-    if (rowBulan !== header.bulan || rowTahun !== header.tahun) {
+    const bulanValid = Number.isFinite(rowBulan) && rowBulan >= 1 && rowBulan <= 12;
+    const tahunValid = Number.isFinite(rowTahun) && rowTahun > 1900;
+
+    // Jika Excel mengisi bulan/tahun → HARUS cocok header
+    if (
+      (bulanValid && rowBulan !== header.bulan) ||
+      (tahunValid && rowTahun !== header.tahun)
+    ) {
       throw new Error(
-        `Periode tidak konsisten pada NIP ${row.nip}. Data: ${String(
-          rowBulan
-        ).padStart(2, "0")}-${rowTahun}, Header: ${String(
-          header.bulan
-        ).padStart(2, "0")}-${header.tahun}`
+        `Periode tidak konsisten pada NIP ${row.nip}. ` +
+          `Data: ${bulanValid ? String(rowBulan).padStart(2, "0") : "??"}-${tahunValid ? rowTahun : "????"}, ` +
+          `Header: ${String(header.bulan).padStart(2, "0")}-${header.tahun}`
       );
     }
+
+    // Jika tidak valid / kosong → dianggap mengikuti header (AMAN)
   }
-
-  // // Optional: cek jumlah kolom sesuai SalaryRaw
-  // const salaryRawKeys = [
-  //   "nip",
-  //   "nmpeg",
-  //   "gjpokok",
-  //   "bersih",
-  //   "bulan",
-  //   "tahun",
-  //   "tjistri",
-  //   "tjanak",
-  //   "tjupns",
-  //   "tjstruk",
-  //   "tjfungs",
-  //   "tjdaerah",
-  //   "tjpencil",
-  //   "tjlain",
-  //   "tjkompen",
-  //   "pembul",
-  //   "tjberas",
-  //   "tjpph",
-  //   "potpfkbul",
-  //   "potpfk2",
-  //   "potpfk10",
-  //   "potpph",
-  //   "potswrum",
-  //   "potkelbtj",
-  //   "potlain",
-  //   "pottabrum",
-  //   "sandi",
-  //   "kdkawin",
-  //   "kdjab",
-  //   "thngj",
-  //   "kdgapok",
-  //   "bpjs",
-  //   "bpjs2",
-  // ];
-
-  // for (const row of rows) {
-  //   const rowKeys = Object.keys(row);
-  //   if (rowKeys.length < salaryRawKeys.length) {
-  //     throw new Error(
-  //       `Format salah: jumlah kolom tidak sesuai pada NIP ${row.nip}`
-  //     );
-  //   }
-  // }
 }

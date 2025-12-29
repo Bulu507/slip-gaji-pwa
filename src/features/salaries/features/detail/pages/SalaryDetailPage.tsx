@@ -22,7 +22,15 @@ export default function SalaryDetailPage() {
   useEffect(() => {
     if (!periodId) return;
 
-    getSalaryRawsByPeriodAsync(periodId).then(setSalaryList);
+    let active = true;
+
+    getSalaryRawsByPeriodAsync(periodId).then((data) => {
+      if (active) setSalaryList(data);
+    });
+
+    return () => {
+      active = false;
+    };
   }, [periodId]);
 
   return (
@@ -37,54 +45,52 @@ export default function SalaryDetailPage() {
         </Button>
       </div>
 
-      {salaryList.length === 0 && (
-        <Card className="p-4 text-muted-foreground">Belum ada data gaji</Card>
-      )}
-
-      {salaryList.length > 0 && (
-        <Card className="p-4 overflow-x-auto">
+      <Card className="p-4 overflow-x-auto">
+        {salaryList.length === 0 ? (
+          <div className="text-muted-foreground">Belum ada data gaji</div>
+        ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>NIP</TableHead>
                 <TableHead>Nama</TableHead>
-                <TableHead>Gaji Pokok</TableHead>
-                <TableHead>Tunjangan Istri</TableHead>
-                <TableHead>Tunjangan Anak</TableHead>
-                <TableHead>Potongan PPh</TableHead>
-                <TableHead>BPJS</TableHead>
-                <TableHead>Bersih</TableHead>
+                <TableHead className="text-right">Gaji Pokok</TableHead>
+                <TableHead className="text-right">Tunj. Istri</TableHead>
+                <TableHead className="text-right">Tunj. Anak</TableHead>
+                <TableHead className="text-right">PPh</TableHead>
+                <TableHead className="text-right">BPJS</TableHead>
+                <TableHead className="text-right">Gaji Bersih</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {salaryList.map((item) => (
-                <TableRow key={item.nogaji}>
+                <TableRow key={`${item.nip}-${item.nogaji}`}>
                   <TableCell>{item.nip}</TableCell>
                   <TableCell>{item.nmpeg}</TableCell>
                   <TableCell className="text-right">
-                    {item.gjpokok.toLocaleString()}
+                    {item.gjpokok.toLocaleString("id-ID")}
                   </TableCell>
                   <TableCell className="text-right">
-                    {item.tjistri.toLocaleString()}
+                    {item.tjistri.toLocaleString("id-ID")}
                   </TableCell>
                   <TableCell className="text-right">
-                    {item.tjanak.toLocaleString()}
+                    {item.tjanak.toLocaleString("id-ID")}
                   </TableCell>
                   <TableCell className="text-right">
-                    {item.tjpph.toLocaleString()}
+                    {item.tjpph.toLocaleString("id-ID")}
                   </TableCell>
                   <TableCell className="text-right">
-                    {item.bpjs.toLocaleString()}
+                    {item.bpjs.toLocaleString("id-ID")}
                   </TableCell>
-                  <TableCell className="text-right">
-                    {item.bersih.toLocaleString()}
+                  <TableCell className="text-right font-semibold">
+                    {item.bersih.toLocaleString("id-ID")}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </Card>
-      )}
+        )}
+      </Card>
     </div>
   );
 }

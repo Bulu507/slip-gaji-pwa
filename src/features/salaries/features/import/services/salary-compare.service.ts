@@ -1,6 +1,6 @@
 import type { SalaryRaw } from "@/features/salaries/models/salary.model"
 import type { SalaryImportPreviewRow } from "../models/salary-import-preview.model"
-import { buildPeriodKey } from "@/lib/utils";
+import { buildPeriodKey } from "@/lib/utils"
 
 /**
  * Bandingkan data import vs existing di localStorage
@@ -28,9 +28,9 @@ export function compareSalaryPreview(
     let action: "new" | "update" | "none" = "new"
 
     if (existing) {
-      // bandingkan field kunci gaji (gjpokok, bersih)
       if (
-        existing.gjpokok !== row.gjpokok ||
+        existing.total_penghasilan !== row.total_penghasilan ||
+        existing.total_potongan !== row.total_potongan ||
         existing.bersih !== row.bersih
       ) {
         action = "update"

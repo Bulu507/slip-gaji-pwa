@@ -1,14 +1,20 @@
 export type SalaryRaw = {
-  // === PERIODE ===
+  // =============================
+  // PERIODE GAJI
+  // =============================
   bulan: number
   tahun: number
-
-  // === IDENTITAS ===
-  nip: string
-  nmpeg: string
   nogaji: string
 
-  // === KODE ADMINISTRATIF (RAW) ===
+  // =============================
+  // IDENTITAS PEGAWAI
+  // =============================
+  nip: string
+  nmpeg: string
+
+  // =============================
+  // KODE ADMINISTRATIF (MENTAH)
+  // =============================
   kdsatker: string
   kdanak: string
   kdsubanak: string
@@ -21,7 +27,9 @@ export type SalaryRaw = {
   kdgapok: string
   sandi: string
 
-  // === BANK ===
+  // =============================
+  // DATA BANK
+  // =============================
   npwp: string
   nmrek: string
   nm_bank: string
@@ -29,7 +37,9 @@ export type SalaryRaw = {
   kdbankspan: string
   nmbankspan: string
 
-  // === PENGHASILAN ===
+  // =============================
+  // PENGHASILAN UMUM (PNS / PPPK)
+  // =============================
   gjpokok: number
   tjistri: number
   tjanak: number
@@ -40,11 +50,25 @@ export type SalaryRaw = {
   tjpencil: number
   tjlain: number
   tjkompen: number
-  pembul: number
   tjberas: number
   tjpph: number
+  pembul: number
 
-  // === POTONGAN ===
+  // =============================
+  // PENGHASILAN KHUSUS TNI
+  // =============================
+  tlauk: number
+  tkowan: number
+  tpolwan: number
+  tbabin: number
+  tsandi: number
+  tbrevet: number
+  tkhusus: number
+  tbatas: number
+
+  // =============================
+  // POTONGAN
+  // =============================
   potpfkbul: number
   potpfk2: number
   potpfk10: number
@@ -54,8 +78,16 @@ export type SalaryRaw = {
   potlain: number
   pottabrum: number
 
-  // === BPJS & HASIL ===
+  // =============================
+  // BPJS
+  // =============================
   bpjs: number
   bpjs2: number
+
+  // =============================
+  // TOTAL & HASIL
+  // =============================
+  total_penghasilan: number
+  total_potongan: number
   bersih: number
 }

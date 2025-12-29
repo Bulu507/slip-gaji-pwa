@@ -23,8 +23,10 @@ function buildPeriodKey(tahun: number, bulan: number): string {
  * Compare dua data salary (shallow)
  */
 function isSalaryChanged(a: SalaryRaw, b: SalaryRaw): boolean {
-  return Object.keys(a).some(
-    (key) => a[key as keyof SalaryRaw] !== b[key as keyof SalaryRaw]
+  return (
+    a.total_penghasilan !== b.total_penghasilan ||
+    a.total_potongan !== b.total_potongan ||
+    a.bersih !== b.bersih
   )
 }
 
