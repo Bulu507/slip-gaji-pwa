@@ -6,10 +6,10 @@ export function compareEmployees(
   existing: Employee[]
 ): PreviewEmployee[] {
   const map = new Map<string, Employee>()
-  existing.forEach((e) => map.set(e.employeeId, e))
+  existing.forEach((e) => map.set(e.nip, e))
 
   return incoming.map((emp) => {
-    const old = map.get(emp.employeeId)
+    const old = map.get(emp.nip)
 
     if (!old) {
       return { ...emp, action: "new" }

@@ -34,7 +34,7 @@ export default function EmployeesPage() {
 
     return employees.filter(
       (e) =>
-        e.employeeId.toLowerCase().includes(q) ||
+        e.nip.toLowerCase().includes(q) ||
         e.name.toLowerCase().includes(q)
     )
   }, [employees, keyword])
@@ -94,8 +94,8 @@ export default function EmployeesPage() {
             )}
 
             {filteredEmployees.map((emp) => (
-              <TableRow key={emp.employeeId}>
-                <TableCell>{emp.employeeId}</TableCell>
+              <TableRow key={emp.nip}>
+                <TableCell>{emp.nip}</TableCell>
                 <TableCell className="font-medium">{emp.name}</TableCell>
                 <TableCell>{emp.grade}</TableCell>
                 <TableCell>{emp.position}</TableCell>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Upload } from "lucide-react";
@@ -10,20 +11,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import toast from "react-hot-toast";
 
 import type { SalaryImportMode } from "../models/salary-import.model";
+import type { SalaryImportPreviewRow } from "../models/salary-import-preview.model";
+import type { SalaryImportErrorRow } from "../models/salary-import-error.model";
 
 import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant";
 import { YEAR_OPTIONS } from "@/lib/constants/year-option.constant";
 
 import { parseSalaryExcel } from "../services/salary-excel-parser.service";
 import { validateSalaryPreview } from "../services/salary-preview-validation.service";
-import { importSalary } from "../services/salary-import.service";
-import { SalaryImportPreviewTable } from "../components/SalaryImportPreviewTable";
-import type { SalaryImportPreviewRow } from "../models/salary-import-preview.model";
 import { compareSalaryPreview } from "../services/salary-compare.service";
+import { importSalary } from "../services/salary-import.service";
+
+import { SalaryImportPreviewTable } from "../components/SalaryImportPreviewTable";
 import { SalaryImportHeader } from "../components/SalaryImportHeader";
-import toast from "react-hot-toast";
+import { SalaryImportErrorModal } from "../components/SalaryImportErrorModal";
 
 type Step = "form" | "preview";
 
@@ -31,6 +35,9 @@ export default function SalaryImportPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // =========================
+  // STATE
+  // =========================
   const [step, setStep] = useState<Step>("form");
   const [file, setFile] = useState<File | null>(null);
 
@@ -39,10 +46,19 @@ export default function SalaryImportPage() {
   const [mode, setMode] = useState<SalaryImportMode>("replace");
 
   const [previewRows, setPreviewRows] = useState<SalaryImportPreviewRow[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isPeriodReady = bulan !== "" && tahun !== "" && !!mode;
+  // VALIDATION ERROR
+  const [validationErrors, setValidationErrors] = useState<
+    SalaryImportErrorRow[]
+  >([]);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+
+  // =========================
+  // DERIVED STATE
+  // =========================
+  const isPeriodReady = bulan !== "" && tahun !== "";
   const isReady = isPeriodReady && !!file;
 
   // =========================
@@ -57,12 +73,19 @@ export default function SalaryImportPage() {
 
       const rows = await parseSalaryExcel(file);
 
-      validateSalaryPreview(rows, {
+      const validation = validateSalaryPreview(rows, {
         bulan: bulan as number,
         tahun: tahun as number,
       });
 
-      // ✅ COMPARE STATUS (new / update)
+      // ❌ VALIDATION ERROR → MODAL
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors);
+        setShowErrorModal(true);
+        return;
+      }
+
+      // ✅ COMPARE STATUS
       const preview = compareSalaryPreview(rows, {
         bulan: bulan as number,
         tahun: tahun as number,
@@ -82,19 +105,15 @@ export default function SalaryImportPage() {
   // HANDLER: SAVE
   // =========================
   const handleSave = () => {
-    // importSalary(
-    //   { bulan: bulan as number, tahun: tahun as number, mode },
-    //   previewRows
-    // );
-
     importSalary(
       { bulan: bulan as number, tahun: tahun as number, mode },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      previewRows.map(({ action, ...row }) => row)
+      previewRows.map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        ({ action, ...row }) => row
+      )
     );
 
-    toast.success("Data gaji berhasil disimpan"); // <-- toast success
-
+    toast.success("Data gaji berhasil disimpan");
     navigate("/salary");
   };
 
@@ -109,16 +128,21 @@ export default function SalaryImportPage() {
   };
 
   // =========================
-  // HANDLER: RESET FILE INPUT
+  // HANDLER: RESET FILE
   // =========================
   const resetFileInput = () => {
     setFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
+  // =========================
+  // RENDER
+  // =========================
   return (
     <div className="space-y-6">
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <Breadcrumb
@@ -175,52 +199,38 @@ export default function SalaryImportPage() {
           </div>
 
           {/* MODE */}
-          <div className="space-y-2">
-            <Select
-              value={mode}
-              onValueChange={(v) => setMode(v as SalaryImportMode)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="replace">Ganti seluruh data</SelectItem>
-                <SelectItem value="update">Update / tambah per NIP</SelectItem>
-              </SelectContent>
-            </Select>
-            {mode === "replace" && (
-              <p className="text-xs text-destructive">
-                *Mode ini akan mengganti seluruh data gaji pada periode yang dipilih.
-              </p>
-            )}
-            {mode === "update" && (
-              <p className="text-xs text-destructive">
-                *Mode ini hanya akan menambah atau mengupdate data gaji sesuai NIP.
-              </p>
-            )}
-          </div>
+          <Select
+            value={mode}
+            onValueChange={(v) => setMode(v as SalaryImportMode)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="replace">Ganti seluruh data</SelectItem>
+              <SelectItem value="update">Update / tambah per NIP</SelectItem>
+            </SelectContent>
+          </Select>
 
           {/* FILE */}
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              disabled={!isPeriodReady}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {file ? file.name : "Pilih File Excel"}
-            </Button>
+          <Button
+            variant="outline"
+            disabled={!isPeriodReady}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {file ? file.name : "Pilih File Excel"}
+          </Button>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx"
-              hidden
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
-          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            hidden
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex justify-end">
             <Button disabled={!isReady || loading} onClick={handlePreview}>
@@ -234,7 +244,6 @@ export default function SalaryImportPage() {
       {step === "preview" && (
         <div className="space-y-4">
           <SalaryImportHeader data={previewRows} mode={mode} />
-
           <SalaryImportPreviewTable rows={previewRows} mode={mode} />
 
           <div className="flex justify-end gap-2">
@@ -245,6 +254,13 @@ export default function SalaryImportPage() {
           </div>
         </div>
       )}
+
+      {/* ================= ERROR MODAL ================= */}
+      <SalaryImportErrorModal
+        open={showErrorModal}
+        errors={validationErrors}
+        onClose={() => setShowErrorModal(false)}
+      />
     </div>
   );
 }

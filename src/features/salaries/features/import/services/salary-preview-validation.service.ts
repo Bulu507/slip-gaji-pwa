@@ -1,48 +1,97 @@
-import type { SalaryRaw } from "@/features/salaries/models/salary.model";
-import { validateDuplicateNipInFile } from "./salary-validation.service";
+// features/salaries/services/salary-preview-validation.service.ts
 
-/**
- * Validasi data preview salary (sebelum compare & simpan)
- * NOTE:
- * - Fokus ke identitas & periode
- * - Tidak validasi field finansial
- */
+import type { SalaryRaw } from "@/features/salaries/models/salary.model"
+import type { SalaryImportErrorRow } from "../models/salary-import-error.model"
+import { validateDuplicateNipInFile } from "./salary-validation.service"
+import { getEmployees } from "@/features/employees/services/employee-storage.service"
+
 export function validateSalaryPreview(
   rows: SalaryRaw[],
   header: { bulan: number; tahun: number }
-): void {
+): {
+  isValid: boolean
+  errors: SalaryImportErrorRow[]
+} {
+  const errors: SalaryImportErrorRow[] = []
+
+  // =========================
+  // EMPTY FILE
+  // =========================
   if (rows.length === 0) {
-    throw new Error("Data gaji kosong");
+    return {
+      isValid: false,
+      errors: [
+        {
+          rowIndex: 0,
+          nip: "",
+          nmpeg: "",
+          reason: "Data gaji kosong",
+        },
+      ],
+    }
   }
 
-  // ✅ Tetap: NIP tidak boleh duplikat
-  validateDuplicateNipInFile(rows);
+  // =========================
+  // DUPLICATE NIP (HARD STOP)
+  // =========================
+  // masih throw → dianggap error fatal file
+  validateDuplicateNipInFile(rows)
 
-  for (const [index, row] of rows.entries()) {
-    // === VALIDASI IDENTITAS ===
-    if (!row.nip || String(row.nip).trim() === "") {
-      throw new Error(`NIP kosong pada baris ke-${index + 1}`);
+  // =========================
+  // LOAD EMPLOYEE MASTER
+  // =========================
+  const employees = getEmployees()
+  const employeeSet = new Set(employees.map((e) => e.nip))
+
+  // =========================
+  // ROW VALIDATION
+  // =========================
+  rows.forEach((row, index) => {
+    const rowIndex = index + 2 // header excel = row 1
+
+    // NIP kosong
+    if (!row.nip || row.nip.trim() === "") {
+      errors.push({
+        rowIndex,
+        nip: "",
+        nmpeg: row.nmpeg,
+        reason: "NIP kosong",
+      })
+      return
     }
 
-    // === VALIDASI PERIODE (DEFENSIVE) ===
-    const rowBulan = Number(row.bulan);
-    const rowTahun = Number(row.tahun);
+    // Pegawai belum terdaftar
+    if (!employeeSet.has(row.nip)) {
+      errors.push({
+        rowIndex,
+        nip: row.nip,
+        nmpeg: row.nmpeg,
+        reason: "Pegawai belum terdaftar",
+      })
+    }
 
-    const bulanValid = Number.isFinite(rowBulan) && rowBulan >= 1 && rowBulan <= 12;
-    const tahunValid = Number.isFinite(rowTahun) && rowTahun > 1900;
+    // Periode tidak konsisten
+    const rowBulan = Number(row.bulan)
+    const rowTahun = Number(row.tahun)
 
-    // Jika Excel mengisi bulan/tahun → HARUS cocok header
+    const bulanValid = Number.isFinite(rowBulan) && rowBulan >= 1 && rowBulan <= 12
+    const tahunValid = Number.isFinite(rowTahun) && rowTahun > 1900
+
     if (
       (bulanValid && rowBulan !== header.bulan) ||
       (tahunValid && rowTahun !== header.tahun)
     ) {
-      throw new Error(
-        `Periode tidak konsisten pada NIP ${row.nip}. ` +
-          `Data: ${bulanValid ? String(rowBulan).padStart(2, "0") : "??"}-${tahunValid ? rowTahun : "????"}, ` +
-          `Header: ${String(header.bulan).padStart(2, "0")}-${header.tahun}`
-      );
+      errors.push({
+        rowIndex,
+        nip: row.nip,
+        nmpeg: row.nmpeg,
+        reason: `Periode tidak konsisten (${rowBulan || "??"}-${rowTahun || "????"})`,
+      })
     }
+  })
 
-    // Jika tidak valid / kosong → dianggap mengikuti header (AMAN)
+  return {
+    isValid: errors.length === 0,
+    errors,
   }
 }

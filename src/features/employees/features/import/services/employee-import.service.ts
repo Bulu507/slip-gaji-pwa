@@ -39,7 +39,7 @@ export async function importEmployeeFromExcel(
 
   /** mapping Excel → PreviewEmployee */
   const mapped: PreviewEmployee[] = rows.map((r) => ({
-    employeeId: r.nip,
+    nip: r.nip,
     name: r.nama,
     grade: r.golongan,
     gradeName: r.nama_golongan,

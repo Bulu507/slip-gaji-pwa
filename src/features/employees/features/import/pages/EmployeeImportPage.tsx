@@ -89,7 +89,7 @@ export default function EmployeeImportPage() {
     const employeesToSave: Employee[] = previewData
       .filter((p) => mode === "replace" || p.action !== "same")
       .map((p) => ({
-        employeeId: p.employeeId,
+        nip: p.nip,
         name: p.name,
         grade: p.grade,
         gradeName: p.gradeName,
@@ -247,7 +247,7 @@ export default function EmployeeImportPage() {
               </thead>
               <tbody>
                 {previewData.map((emp) => (
-                  <tr key={emp.employeeId} className="border-t">
+                  <tr key={emp.nip} className="border-t">
                     {isUpdateMode && (
                       <td className="px-3 py-2">
                         {emp.action === "new" && (
@@ -267,7 +267,7 @@ export default function EmployeeImportPage() {
                         )}
                       </td>
                     )}
-                    <td className="px-3 py-2">{emp.employeeId}</td>
+                    <td className="px-3 py-2">{emp.nip}</td>
                     <td className="px-3 py-2">{emp.name}</td>
                     <td className="px-3 py-2">{emp.gradeName}</td>
                     <td className="px-3 py-2">{emp.position}</td>

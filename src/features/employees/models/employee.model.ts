@@ -1,5 +1,5 @@
 export type Employee = {
-  employeeId: string // nip
+  nip: string // nip
   name: string
   grade: string
   gradeName: string

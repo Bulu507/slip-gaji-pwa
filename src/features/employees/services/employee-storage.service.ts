@@ -20,8 +20,8 @@ export function mergeEmployees(
   incoming: Employee[]
 ) {
   const map = new Map<string, Employee>()
-  existing.forEach((e) => map.set(e.employeeId, e))
-  incoming.forEach((e) => map.set(e.employeeId, e))
+  existing.forEach((e) => map.set(e.nip, e))
+  incoming.forEach((e) => map.set(e.nip, e))
 
   saveEmployees(Array.from(map.values()))
 }

@@ -26,7 +26,7 @@ export type ImportAction = "new" | "update" | "same"
  * Preview data (SUDAH DIMAPPING ke model internal)
  */
 export type PreviewEmployee = {
-  employeeId: string
+  nip: string
   name: string
   grade: string
   gradeName: string
