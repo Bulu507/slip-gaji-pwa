@@ -1,31 +1,37 @@
-import type { SalaryRaw } from "@/features/salaries/models/salary.model"
-import type { SalaryImportPreviewRow } from "../models/salary-import-preview.model"
-import { buildPeriodKey } from "@/lib/utils"
+import type { SalaryRaw } from "@/features/salaries/models/salary.model";
+import { buildPeriodKey } from "@/lib/utils";
+import type { TunkinRaw } from "@/features/tunkin/model/tunkin.model";
+import type { SalaryImportPreviewRow } from "../models/salary-import.model";
 
 /**
  * Bandingkan data import vs existing di localStorage
  * Tambahkan properti `action`: 'new' | 'update' | 'none'
  */
+
+export type TunkinImportPreviewRow = TunkinRaw & {
+  action: "new" | "update" | "none";
+};
+
 export function compareSalaryPreview(
   rows: SalaryRaw[],
   header: { bulan: number; tahun: number }
 ): SalaryImportPreviewRow[] {
-  const periodKey = buildPeriodKey(header.tahun, header.bulan)
-  const storageKey = `salary:${periodKey}`
+  const periodKey = buildPeriodKey(header.tahun, header.bulan);
+  const storageKey = `salary:${periodKey}`;
 
   const existingRaw: SalaryRaw[] = localStorage.getItem(storageKey)
     ? JSON.parse(localStorage.getItem(storageKey)!)
-    : []
+    : [];
 
-  const existingMap = new Map<string, SalaryRaw>()
+  const existingMap = new Map<string, SalaryRaw>();
   for (const item of existingRaw) {
-    existingMap.set(item.nip, item)
+    existingMap.set(item.nip, item);
   }
 
   return rows.map((row) => {
-    const existing = existingMap.get(row.nip)
+    const existing = existingMap.get(row.nip);
 
-    let action: "new" | "update" | "none" = "new"
+    let action: "new" | "update" | "none" = "new";
 
     if (existing) {
       if (
@@ -33,15 +39,15 @@ export function compareSalaryPreview(
         existing.total_potongan !== row.total_potongan ||
         existing.bersih !== row.bersih
       ) {
-        action = "update"
+        action = "update";
       } else {
-        action = "none"
+        action = "none";
       }
     }
 
     return {
       ...row,
       action,
-    }
-  })
+    };
+  });
 }

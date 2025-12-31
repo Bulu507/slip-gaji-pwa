@@ -1,4 +1,4 @@
-import type { SalaryImportPreviewRow } from "../models/salary-import-preview.model"
+import type { SalaryImportPreviewRow } from "../models/salary-import.model"
 
 type Props = {
   data: SalaryImportPreviewRow[]

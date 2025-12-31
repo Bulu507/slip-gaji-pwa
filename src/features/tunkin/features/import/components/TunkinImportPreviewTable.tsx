@@ -1,3 +1,5 @@
+// features/tunkin/features/import/components/TunkinImportPreviewTable.tsx
+
 import {
   Table,
   TableHeader,
@@ -6,22 +8,22 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import type { SalaryImportPreviewRow } from "../models/salary-import.model"
+import type { TunkinImportPreviewRow } from "../model/tunkin-import.model"
 
 type Props = {
-  rows: SalaryImportPreviewRow[]
-  mode: string,
+  rows: TunkinImportPreviewRow[]
+  mode: string
 }
 
-export function SalaryImportPreviewTable({ rows, mode }: Props) {
+export function TunkinImportPreviewTable({ rows, mode }: Props) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>NIP</TableHead>
           <TableHead>Nama</TableHead>
-          <TableHead>Gaji Pokok</TableHead>
-          <TableHead>Bersih</TableHead>
+          <TableHead>Grade</TableHead>
+          <TableHead>Nilai Bersih</TableHead>
           {mode === "update" && <TableHead>Status</TableHead>}
         </TableRow>
       </TableHeader>
@@ -48,10 +50,14 @@ export function SalaryImportPreviewTable({ rows, mode }: Props) {
           return (
             <TableRow key={row.nip}>
               <TableCell>{row.nip}</TableCell>
-              <TableCell>{row.nmpeg}</TableCell>
-              <TableCell>{row.gjpokok}</TableCell>
-              <TableCell>{row.bersih}</TableCell>
-              {mode === "update" && <TableCell className={statusClass}>{statusLabel}</TableCell>}
+              <TableCell>{row.nama}</TableCell>
+              <TableCell>{row.kode_grade}</TableCell>
+              <TableCell>{row.nilai_bersih}</TableCell>
+              {mode === "update" && (
+                <TableCell className={statusClass}>
+                  {statusLabel}
+                </TableCell>
+              )}
             </TableRow>
           )
         })}
