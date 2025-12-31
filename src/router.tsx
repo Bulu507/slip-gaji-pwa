@@ -9,6 +9,7 @@ import SalaryDetailPage from "./features/salaries/features/detail/pages/SalaryDe
 import TunkinPage from "./features/tunkin/pages/TunkinPage"
 import TunkinImportPage from "./features/tunkin/features/import/pages/TunkinImportPage"
 import TunkinDetailPage from "./features/tunkin/features/detail/pages/TunkinDetailPage"
+import EmployeeDetailPage from "./features/employees/features/detail/pages/EmployeeDetailPage"
 
 export const router = createBrowserRouter([
   {
@@ -17,12 +18,13 @@ export const router = createBrowserRouter([
       { path: "/", element: <DashboardPage /> },
       { path: "/employees", element: <EmployeesPage /> },
       { path: "/employees/import", element: <EmployeeImportPage /> },
+      { path: "/employees/:nip", element: <EmployeeDetailPage /> },
       { path: "/salary", element: <SalariesPage /> },
       { path: "/salary/import", element: <SalaryImportPage /> },
-      { path: "/salary/detail/:periodId", element: <SalaryDetailPage /> },
+      { path: "/salary/:periodId", element: <SalaryDetailPage /> },
       { path: "/tunkin", element: <TunkinPage /> },
       { path: "/tunkin/import", element: <TunkinImportPage /> },
-      { path: "/tunkin/detail/:periodId", element: <TunkinDetailPage /> },
+      { path: "/tunkin/:periodId", element: <TunkinDetailPage /> },
     ],
   },
 ])

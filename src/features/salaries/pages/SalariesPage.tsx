@@ -72,7 +72,7 @@ export default function SalariesPage() {
               </div>
             </div>
 
-            <Button size="sm" onClick={() => navigate(`/salary/detail/${p.id}`)}>
+            <Button size="sm" onClick={() => navigate(`/salary/${p.id}`)}>
               Detail
             </Button>
           </Card>

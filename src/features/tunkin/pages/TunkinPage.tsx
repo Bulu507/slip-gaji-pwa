@@ -76,7 +76,7 @@ export default function TunkinPage() {
 
             <Button
               size="sm"
-              onClick={() => navigate(`/tunkin/detail/${p.id}`)}
+              onClick={() => navigate(`/tunkin/${p.id}`)}
             >
               Detail
             </Button>

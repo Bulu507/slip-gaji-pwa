@@ -18,15 +18,14 @@ import { getEmployees } from "../services/employee-storage.service"
 
 export default function EmployeesPage() {
   const navigate = useNavigate()
-
-  /** 🔑 Ambil data langsung dari localStorage */
   const [keyword, setKeyword] = useState("")
 
+  /** Ambil data pegawai */
   const employees: Employee[] = useMemo(() => {
     return getEmployees()
   }, [])
 
-  /** 🔍 Filter sederhana (NIP / Nama) */
+  /** Filter (NIP / Nama) */
   const filteredEmployees = useMemo(() => {
     if (!keyword) return employees
 
@@ -94,15 +93,30 @@ export default function EmployeesPage() {
             )}
 
             {filteredEmployees.map((emp) => (
-              <TableRow key={emp.nip}>
+              <TableRow
+                key={emp.nip}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => navigate(`/employees/${emp.nip}`)}
+              >
                 <TableCell>{emp.nip}</TableCell>
-                <TableCell className="font-medium">{emp.name}</TableCell>
+                <TableCell className="font-medium">
+                  {emp.name}
+                </TableCell>
                 <TableCell>{emp.grade}</TableCell>
                 <TableCell>{emp.position}</TableCell>
                 <TableCell>{emp.unit}</TableCell>
                 <TableCell>{emp.employmentType}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="link" size="sm">
+                <TableCell
+                  className="text-right"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      navigate(`/employees/${emp.nip}`)
+                    }
+                  >
                     Detail
                   </Button>
                 </TableCell>
