@@ -5,13 +5,28 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import type { PreviewEmployee } from "../models/import.model";
+} from "@/components/ui/table"
+import type { PreviewEmployee } from "../models/employee-import.model"
 
 type Props = {
-  data: PreviewEmployee[];
-  showAction?: boolean;
-};
+  data: PreviewEmployee[]
+  showAction?: boolean
+}
+
+const ACTION_LABEL = {
+  new: {
+    text: "BARU",
+    className: "text-green-600",
+  },
+  update: {
+    text: "BERUBAH",
+    className: "text-orange-600",
+  },
+  same: {
+    text: "TIDAK BERUBAH",
+    className: "text-muted-foreground",
+  },
+} as const
 
 export default function ImportPreviewTable({
   data,
@@ -30,6 +45,17 @@ export default function ImportPreviewTable({
       </TableHeader>
 
       <TableBody>
+        {data.length === 0 && (
+          <TableRow>
+            <TableCell
+              colSpan={showAction ? 5 : 4}
+              className="text-center text-sm text-muted-foreground"
+            >
+              Tidak ada data untuk ditampilkan
+            </TableCell>
+          </TableRow>
+        )}
+
         {data.map((row) => (
           <TableRow key={row.nip}>
             <TableCell>{row.nip}</TableCell>
@@ -37,24 +63,18 @@ export default function ImportPreviewTable({
             <TableCell>{row.position}</TableCell>
             <TableCell>{row.unit}</TableCell>
 
-            {showAction && (
+            {showAction && row.action && (
               <TableCell>
-                {row.action === "new" && (
-                  <span className="text-green-600 text-xs">BARU</span>
-                )}
-                {row.action === "update" && (
-                  <span className="text-orange-600 text-xs">BERUBAH</span>
-                )}
-                {row.action === "same" && (
-                  <span className="text-muted-foreground text-xs">
-                    TIDAK BERUBAH
-                  </span>
-                )}
+                <span
+                  className={`${ACTION_LABEL[row.action].className} text-xs`}
+                >
+                  {ACTION_LABEL[row.action].text}
+                </span>
               </TableCell>
             )}
           </TableRow>
         ))}
       </TableBody>
     </Table>
-  );
+  )
 }

@@ -1,22 +1,23 @@
-// features/tunkin/features/import/services/tunkin-error-excel.service.ts
-
 import * as XLSX from "xlsx"
-import type { TunkinImportErrorRow } from "../model/tunkin-import-error.model"
+import type { EmployeeImportErrorRow } from "../models/employee-import-error.model"
 
-export function buildTunkinImportErrorExcel(
-  errors: TunkinImportErrorRow[]
+/**
+ * Build Excel dari list error import pegawai
+ */
+export function buildEmployeeImportErrorExcel(
+  errors: EmployeeImportErrorRow[]
 ): Blob {
   const worksheet = XLSX.utils.json_to_sheet(
     errors.map((e) => ({
       Baris: e.rowIndex,
       NIP: e.nip,
-      Nama: e.nmpeg,
+      Nama: e.name,
       Alasan: e.reason,
     }))
   )
 
   const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Error Import Tunkin")
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Error Import Pegawai")
 
   const arrayBuffer = XLSX.write(workbook, {
     bookType: "xlsx",

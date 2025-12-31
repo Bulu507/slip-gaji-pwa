@@ -2,7 +2,6 @@ export type ImportMode = "replace" | "update"
 
 /**
  * Bentuk MENTAH dari Excel
- * SESUAI kolom Excel
  */
 export type ExcelEmployeeRow = {
   nip: string
@@ -18,12 +17,12 @@ export type ExcelEmployeeRow = {
 }
 
 /**
- * Action hasil compare
+ * Action hasil compare (HANYA untuk mode update)
  */
 export type ImportAction = "new" | "update" | "same"
 
 /**
- * Preview data (SUDAH DIMAPPING ke model internal)
+ * Preview data import pegawai
  */
 export type PreviewEmployee = {
   nip: string
@@ -36,13 +35,7 @@ export type PreviewEmployee = {
   position: string
   unit: string
   employmentType: string
-  action?: ImportAction
-}
 
-/**
- * Error import
- */
-export type ImportError = {
-  type: "DUPLICATE_NIP"
-  duplicatedNips: string[]
+  /** hanya ada saat mode = update */
+  action?: ImportAction
 }

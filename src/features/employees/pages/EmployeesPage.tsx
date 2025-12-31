@@ -50,7 +50,7 @@ export default function EmployeesPage() {
           </p>
         </div>
 
-        <Button variant="outline" onClick={() => navigate("/employees/import")}>
+        <Button onClick={() => navigate("/employees/import")}>
           <Upload className="mr-2 h-4 w-4" />
           Import Pegawai
         </Button>

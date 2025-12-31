@@ -1,91 +1,95 @@
-import { useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { Upload, ArrowLeft } from "lucide-react"
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Upload, ArrowLeft } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Breadcrumb } from "@/components/ui/breadcrumb"
+} from "@/components/ui/select";
 
-import type { PreviewEmployee } from "../models/import.model"
-import type { Employee } from "@/features/employees/models/employee.model"
+import type { PreviewEmployee } from "../models/employee-import.model";
+import type { Employee } from "@/features/employees/models/employee.model";
+import type { EmployeeImportErrorRow } from "../models/employee-import-error.model";
 
-import ImportSummaryBox from "../components/ImportSummaryBox"
+import ImportSummaryBox from "../components/ImportSummaryBox";
+import ImportPreviewTable from "../components/ImportPreviewTable";
+import { EmployeeImportErrorModal } from "../components/EmployeeImportErrorModal";
 
-import { importEmployeeFromExcel } from "../services/employee-import.service"
 import {
   getEmployees,
   mergeEmployees,
   replaceEmployees,
-} from "@/features/employees/services/employee-storage.service"
+} from "@/features/employees/services/employee-storage.service";
+import { previewEmployeeImport } from "../services/employee-import-preview.service";
 
-type ImportMode = "replace" | "update"
+type ImportMode = "replace" | "update";
+type Step = "form" | "preview";
 
 export default function EmployeeImportPage() {
-  const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [mode, setMode] = useState<ImportMode | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // =========================
+  // STATE
+  // =========================
+  const [step, setStep] = useState<Step>("form");
+  const [mode, setMode] = useState<ImportMode>("replace");
+  const [file, setFile] = useState<File | null>(null);
 
-  const [previewData, setPreviewData] = useState<PreviewEmployee[]>([])
-  const [duplicatedNips, setDuplicatedNips] = useState<string[]>([])
+  const [loading, setLoading] = useState(false);
+  const [previewData, setPreviewData] = useState<PreviewEmployee[]>([]);
 
-  const hasPreview = previewData.length > 0
-  const isUpdateMode = mode === "update"
+  const [errorRows, setErrorRows] = useState<EmployeeImportErrorRow[]>([]);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  /* =========================
-   * FILE UPLOAD
-   * ========================= */
-  async function handleFileUpload(file: File) {
-    if (!mode) return
+  const isReady = !!file && !!mode;
+  const isUpdateMode = mode === "update";
 
-    setLoading(true)
-    setError(null)
-    setDuplicatedNips([])
-    setPreviewData([])
+  // =========================
+  // PREVIEW
+  // =========================
+  const handlePreview = async () => {
+    if (!file) return;
 
-    const existingEmployees = getEmployees()
+    try {
+      setLoading(true);
+      setError(null);
 
-    const result = await importEmployeeFromExcel(
-      file,
-      mode,
-      existingEmployees
-    )
+      const existingEmployees = getEmployees();
+      const result = await previewEmployeeImport(file, mode, existingEmployees);
 
-    setLoading(false)
-
-    if (result.error) {
-      if (result.error.type === "DUPLICATE_NIP") {
-        setError("Import gagal. Ditemukan NIP ganda.")
-        setDuplicatedNips(result.error.duplicatedNips)
+      if (result.error) {
+        if (result.error.type === "DUPLICATE_NIP") {
+          setErrorRows(
+            result.error.duplicatedNips.map((nip, i) => ({
+              rowIndex: i + 1,
+              nip,
+              name: "",
+              reason: "NIP duplikat di dalam file Excel",
+            }))
+          );
+          setShowErrorModal(true);
+        }
+        return;
       }
 
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
-      return
+      setPreviewData(result.data);
+      setStep("preview");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setPreviewData(result.data ?? [])
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-  }
-
-  /* =========================
-   * COMMIT DATA
-   * ========================= */
-  function handleCommit() {
-    if (!mode || previewData.length === 0) return
-
+  // =========================
+  // SAVE
+  // =========================
+  const handleSave = () => {
     const employeesToSave: Employee[] = previewData
       .filter((p) => mode === "replace" || p.action !== "same")
       .map((p) => ({
@@ -93,39 +97,40 @@ export default function EmployeeImportPage() {
         name: p.name,
         grade: p.grade,
         gradeName: p.gradeName,
-        position: p.position,
+        jobTitle: p.jobTitle,
         baseSalaryCode: p.baseSalaryCode,
         maritalStatusCode: p.maritalStatusCode,
-        jobTitle: p.jobTitle,
+        position: p.position,
         unit: p.unit,
         employmentType: p.employmentType,
-      }))
+      }));
 
     if (mode === "replace") {
-      replaceEmployees(employeesToSave)
+      replaceEmployees(employeesToSave);
     } else {
-      const existing = getEmployees()
-      mergeEmployees(existing, employeesToSave)
+      mergeEmployees(getEmployees(), employeesToSave);
     }
 
-    navigate("/employees", { replace: true })
-  }
+    navigate("/employees", { replace: true });
+  };
 
-  /* =========================
-   * RESET
-   * ========================= */
-  function resetImportState() {
-    setMode(null)
-    setPreviewData([])
-    setError(null)
-    setDuplicatedNips([])
-    setLoading(false)
+  // =========================
+  // CANCEL
+  // =========================
+  const handleCancel = () => {
+    setStep("form");
+    setPreviewData([]);
+    setError(null);
+    setFile(null);
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
+  // =========================
+  // RENDER
+  // =========================
   return (
     <div className="space-y-6">
       {/* HEADER */}
@@ -149,137 +154,86 @@ export default function EmployeeImportPage() {
         </Button>
       </div>
 
-      {/* ERROR */}
-      {error && (
-        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm">
-          <p className="font-medium text-destructive">{error}</p>
-          {duplicatedNips.length > 0 && (
-            <ul className="mt-2 list-disc pl-5">
-              {duplicatedNips.map((nip) => (
-                <li key={nip}>{nip}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* MODE & UPLOAD */}
-      {!hasPreview && (
-        <>
-          <div className="space-y-2 max-w-md">
+      {/* FORM */}
+      {step === "form" && (
+        <div className="space-y-6">
+          <div className="space-y-2">
             <label className="text-sm font-medium">Mode Import</label>
-            <Select onValueChange={(v: ImportMode) => setMode(v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih mode import" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="replace">
-                  Ganti seluruh data pegawai
-                </SelectItem>
-                <SelectItem value="update">
-                  Update / tambah data pegawai
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 max-w-md">
-            <label className="text-sm font-medium">File Excel</label>
-            <Button
-              variant="outline"
-              className="w-full"
-              disabled={!mode || loading}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {loading ? "Memproses..." : "Pilih File"}
-            </Button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx"
-              hidden
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) handleFileUpload(file)
-              }}
-            />
-          </div>
-        </>
-      )}
-
-      {/* PREVIEW */}
-      {hasPreview && (
-        <>
-          {/* SUMMARY (ONLY UPDATE MODE) */}
-          {isUpdateMode && <ImportSummaryBox data={previewData} />}
-
-          {/* ACTION */}
-          <div className="rounded-md border bg-card p-4 text-sm flex justify-between">
-            <p className="text-muted-foreground">
-              Total data: {previewData.length}
-            </p>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={resetImportState}>
-                Batalkan
-              </Button>
-              <Button onClick={handleCommit}>Simpan Data</Button>
+            <div>
+              <Select
+                value={mode}
+                onValueChange={(v) => setMode(v as ImportMode)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="replace">Ganti seluruh data</SelectItem>
+                  <SelectItem value="update">Update / tambah data</SelectItem>
+                </SelectContent>
+              </Select>
+              {mode === "replace" && (
+                <label className="text-sm text-destructive">
+                  * Pilihan ini akan menghapus dan mengganti seluruh data pegawai
+                </label>
+              )}
+              {mode === "update" && (
+                <label className="text-sm text-destructive">
+                  * Pilihan ini hanya akan mengupdate / menambah data pegawai
+                </label>
+              )}
             </div>
           </div>
 
-          {/* TABLE */}
-          <div className="rounded-md border overflow-hidden text-sm bg-background">
-            <table className="w-full">
-              <thead>
-                <tr>
-                  {isUpdateMode && (
-                    <th className="px-3 py-2 text-left">Status</th>
-                  )}
-                  <th className="px-3 py-2 text-left">NIP</th>
-                  <th className="px-3 py-2 text-left">Nama</th>
-                  <th className="px-3 py-2 text-left">Golongan</th>
-                  <th className="px-3 py-2 text-left">Jabatan</th>
-                  <th className="px-3 py-2 text-left">Unit</th>
-                  <th className="px-3 py-2 text-left">Tipe</th>
-                </tr>
-              </thead>
-              <tbody>
-                {previewData.map((emp) => (
-                  <tr key={emp.nip} className="border-t">
-                    {isUpdateMode && (
-                      <td className="px-3 py-2">
-                        {emp.action === "new" && (
-                          <span className="text-green-600 font-medium">
-                            BARU
-                          </span>
-                        )}
-                        {emp.action === "update" && (
-                          <span className="text-orange-600 font-medium">
-                            UPDATE
-                          </span>
-                        )}
-                        {emp.action === "same" && (
-                          <span className="text-muted-foreground">
-                            TIDAK BERUBAH
-                          </span>
-                        )}
-                      </td>
-                    )}
-                    <td className="px-3 py-2">{emp.nip}</td>
-                    <td className="px-3 py-2">{emp.name}</td>
-                    <td className="px-3 py-2">{emp.gradeName}</td>
-                    <td className="px-3 py-2">{emp.position}</td>
-                    <td className="px-3 py-2">{emp.unit}</td>
-                    <td className="px-3 py-2">{emp.employmentType}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <Button
+            variant="outline"
+            disabled={!mode}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {file ? file.name : "Pilih File Excel"}
+          </Button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            hidden
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+
+          <div className="flex justify-end">
+            <Button disabled={!isReady || loading} onClick={handlePreview}>
+              Cek & Preview
+            </Button>
           </div>
-        </>
+        </div>
       )}
+
+      {/* PREVIEW */}
+      {step === "preview" && (
+        <div className="space-y-4">
+          {isUpdateMode && <ImportSummaryBox data={previewData} />}
+
+          <ImportPreviewTable data={previewData} showAction={isUpdateMode} />
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCancel}>
+              Batalkan
+            </Button>
+            <Button onClick={handleSave}>Simpan</Button>
+          </div>
+        </div>
+      )}
+
+      {/* ERROR MODAL */}
+      <EmployeeImportErrorModal
+        open={showErrorModal}
+        errors={errorRows}
+        onClose={() => setShowErrorModal(false)}
+      />
     </div>
-  )
+  );
 }

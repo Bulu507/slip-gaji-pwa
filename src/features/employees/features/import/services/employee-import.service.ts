@@ -1,60 +1,54 @@
 import type {
   ImportMode,
-  ImportError,
   PreviewEmployee,
-} from "../models/import.model"
+} from "../models/employee-import.model"
 import type { Employee } from "@/features/employees/models/employee.model"
 
-import { parseEmployeeExcel } from "./excel-parser.service"
-import { compareEmployees } from "./employee-compare.service"
+import {
+  getEmployees,
+  replaceEmployees,
+  mergeEmployees,
+} from "@/features/employees/services/employee-storage.service"
 
-type ImportResult =
-  | { data: PreviewEmployee[]; error?: never }
-  | { data?: never; error: ImportError }
-
-export async function importEmployeeFromExcel(
-  file: File,
-  mode: ImportMode,
-  existingEmployees: Employee[]
-): Promise<ImportResult> {
-  const rows = await parseEmployeeExcel(file)
-
-  /** cek duplicate nip di file */
-  const nipSet = new Set<string>()
-  const duplicated: string[] = []
-
-  rows.forEach((r) => {
-    if (nipSet.has(r.nip)) duplicated.push(r.nip)
-    nipSet.add(r.nip)
-  })
-
-  if (duplicated.length > 0) {
-    return {
-      error: {
-        type: "DUPLICATE_NIP",
-        duplicatedNips: duplicated,
-      },
-    }
-  }
-
-  /** mapping Excel → PreviewEmployee */
-  const mapped: PreviewEmployee[] = rows.map((r) => ({
-    nip: r.nip,
-    name: r.nama,
-    grade: r.golongan,
-    gradeName: r.nama_golongan,
-    jobTitle: r.jabatan,
-    baseSalaryCode: r.kdgapok,
-    maritalStatusCode: r.kdkawin,
-    position: r.posisi,
-    unit: r.unit,
-    employmentType: r.tipe,
-  }))
+/**
+ * Simpan hasil import pegawai
+ * Diasumsikan:
+ * - data SUDAH VALID
+ * - data SUDAH DI-PREVIEW
+ * - user sudah klik "Simpan"
+ */
+export async function importEmployees(
+  preview: PreviewEmployee[],
+  mode: ImportMode
+): Promise<Employee[]> {
+  const mapped = preview.map(mapPreviewToEmployee)
 
   if (mode === "replace") {
-    return { data: mapped }
+    replaceEmployees(mapped)
+    return mapped
   }
 
-  const compared = compareEmployees(mapped, existingEmployees)
-  return { data: compared }
+  /** mode update */
+  const existing = getEmployees()
+  mergeEmployees(existing, mapped)
+
+  return getEmployees()
+}
+
+/**
+ * Mapping Preview → Employee (FINAL)
+ */
+function mapPreviewToEmployee(p: PreviewEmployee): Employee {
+  return {
+    nip: p.nip,
+    name: p.name,
+    grade: p.grade,
+    gradeName: p.gradeName,
+    jobTitle: p.jobTitle,
+    baseSalaryCode: p.baseSalaryCode,
+    maritalStatusCode: p.maritalStatusCode,
+    position: p.position,
+    unit: p.unit,
+    employmentType: p.employmentType,
+  }
 }

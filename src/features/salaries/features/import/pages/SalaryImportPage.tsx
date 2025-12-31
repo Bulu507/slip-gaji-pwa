@@ -216,13 +216,13 @@ export default function SalaryImportPage() {
             </Select>
             {mode === "replace" && (
               <label className="text-sm text-destructive">
-                * Pilihan ini akan mengganti seluruh data tunkin pada periode
+                * Pilihan ini akan mengganti seluruh data gaji pada periode
                 terpilih
               </label>
             )}
             {mode === "update" && (
               <label className="text-sm text-destructive">
-                * Pilihan ini hanya akan mengupdate / menambah data tunkin
+                * Pilihan ini hanya akan mengupdate / menambah data gaji
               </label>
             )}
           </div>
