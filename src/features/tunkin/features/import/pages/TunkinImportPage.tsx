@@ -1,101 +1,104 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Upload } from "lucide-react"
-import { Breadcrumb } from "@/components/ui/breadcrumb"
-import { useNavigate } from "react-router-dom"
+import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Upload } from "lucide-react";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import toast from "react-hot-toast"
+} from "@/components/ui/select";
+import toast from "react-hot-toast";
 
-import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant"
-import { YEAR_OPTIONS } from "@/lib/constants/year-option.constant"
+import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant";
+import { YEAR_OPTIONS } from "@/lib/constants/year-option.constant";
 
-import { parseTunkinExcel } from "../services/tunkin-excel-parser.service"
-import { validateTunkinPreview } from "../services/tunkin-preview-validation.service"
-import { compareTunkinPreview } from "../services/tunkin-compare.service"
-import { importTunkin } from "../services/tunkin-import.service"
+import { parseTunkinExcel } from "../services/tunkin-excel-parser.service";
+import { validateTunkinPreview } from "../services/tunkin-preview-validation.service";
+import { compareTunkinPreview } from "../services/tunkin-compare.service";
+import { importTunkin } from "../services/tunkin-import.service";
 
-import { TunkinImportHeader } from "../components/TunkinImportHeader"
-import { TunkinImportPreviewTable } from "../components/TunkinImportPreviewTable"
-import { TunkinImportErrorModal } from "../components/TunkinImportErrorModal"
-import type { TunkinImportMode, TunkinImportPreviewRow } from "../model/tunkin-import.model"
-import type { TunkinImportErrorRow } from "../model/tunkin-import-error.model"
+import { TunkinImportHeader } from "../components/TunkinImportHeader";
+import { TunkinImportPreviewTable } from "../components/TunkinImportPreviewTable";
+import { TunkinImportErrorModal } from "../components/TunkinImportErrorModal";
+import type {
+  TunkinImportMode,
+  TunkinImportPreviewRow,
+} from "../model/tunkin-import.model";
+import type { TunkinImportErrorRow } from "../model/tunkin-import-error.model";
 
-type Step = "form" | "preview"
+type Step = "form" | "preview";
 
 export default function TunkinImportPage() {
-  const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // =========================
   // STATE
   // =========================
-  const [step, setStep] = useState<Step>("form")
-  const [file, setFile] = useState<File | null>(null)
+  const [step, setStep] = useState<Step>("form");
+  const [file, setFile] = useState<File | null>(null);
 
-  const [bulan, setBulan] = useState<number | "">("")
-  const [tahun, setTahun] = useState<number | "">("")
-  const [mode, setMode] = useState<TunkinImportMode>("replace")
+  const [bulan, setBulan] = useState<number | "">("");
+  const [tahun, setTahun] = useState<number | "">("");
+  const [mode, setMode] = useState<TunkinImportMode>("replace");
 
-  const [previewRows, setPreviewRows] =
-    useState<TunkinImportPreviewRow[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [previewRows, setPreviewRows] = useState<TunkinImportPreviewRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // VALIDATION ERROR
-  const [validationErrors, setValidationErrors] =
-    useState<TunkinImportErrorRow[]>([])
-  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<
+    TunkinImportErrorRow[]
+  >([]);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   // =========================
   // DERIVED
   // =========================
-  const isPeriodReady = bulan !== "" && tahun !== ""
-  const isReady = isPeriodReady && !!file
+  const isPeriodReady = bulan !== "" && tahun !== "";
+  const isReady = isPeriodReady && !!file;
 
   // =========================
   // HANDLER: PREVIEW
   // =========================
   const handlePreview = async () => {
-    if (!file || bulan === "" || tahun === "") return
+    if (!file || bulan === "" || tahun === "") return;
 
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
-      const rows = await parseTunkinExcel(file)
+      const rows = await parseTunkinExcel(file);
 
       const validation = validateTunkinPreview(rows, {
         bulan: bulan as number,
         tahun: tahun as number,
-      })
+      });
 
       if (!validation.isValid) {
-        setValidationErrors(validation.errors)
-        setShowErrorModal(true)
-        return
+        setValidationErrors(validation.errors);
+        setShowErrorModal(true);
+        return;
       }
 
       const preview = compareTunkinPreview(rows, {
         bulan: bulan as number,
         tahun: tahun as number,
-      })
+      });
 
-      setPreviewRows(preview)
-      setStep("preview")
+      setPreviewRows(preview);
+      setStep("preview");
     } catch (err) {
-      resetFileInput()
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan")
+      resetFileInput();
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // =========================
   // HANDLER: SAVE
@@ -107,31 +110,31 @@ export default function TunkinImportPage() {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ action, ...row }) => row
       )
-    )
+    );
 
-    toast.success("Data Tunkin berhasil disimpan")
-    navigate("/tunkin")
-  }
+    toast.success("Data Tunkin berhasil disimpan");
+    navigate("/tunkin");
+  };
 
   // =========================
   // HANDLER: CANCEL
   // =========================
   const handleCancel = () => {
-    setStep("form")
-    setPreviewRows([])
-    resetFileInput()
-    setError(null)
-  }
+    setStep("form");
+    setPreviewRows([]);
+    resetFileInput();
+    setError(null);
+  };
 
   // =========================
   // RESET FILE
   // =========================
   const resetFileInput = () => {
-    setFile(null)
+    setFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
   // =========================
   // RENDER
@@ -198,20 +201,30 @@ export default function TunkinImportPage() {
           </div>
 
           {/* MODE */}
-          <Select
-            value={mode}
-            onValueChange={(v) => setMode(v as TunkinImportMode)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="replace">Ganti seluruh data</SelectItem>
-              <SelectItem value="update">
-                Update / tambah per NIP
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div>
+            <Select
+              value={mode}
+              onValueChange={(v) => setMode(v as TunkinImportMode)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="replace">Ganti seluruh data</SelectItem>
+                <SelectItem value="update">Update / tambah data</SelectItem>
+              </SelectContent>
+            </Select>
+            {mode === "replace" && (
+              <label className="text-sm text-destructive">
+                * Pilihan ini akan mengganti seluruh data tunkin pada periode terpilih
+              </label>
+            )}
+            {mode === "update" && (
+              <label className="text-sm text-destructive">
+                * Pilihan ini hanya akan mengupdate / menambah data tunkin
+              </label>
+            )}
+          </div>
 
           {/* FILE */}
           <Button
@@ -231,9 +244,7 @@ export default function TunkinImportPage() {
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex justify-end">
             <Button disabled={!isReady || loading} onClick={handlePreview}>
@@ -265,5 +276,5 @@ export default function TunkinImportPage() {
         onClose={() => setShowErrorModal(false)}
       />
     </div>
-  )
+  );
 }

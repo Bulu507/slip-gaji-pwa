@@ -3,17 +3,19 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { useNavigate } from "react-router-dom"
+
+import type { TunkinPeriod } from "../model/tunkin-period.model"
 import {
   getTunkinPeriods,
   subscribeTunkinPeriods,
 } from "../services/tunkin-period.service"
+
 import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant"
-import type { TunkinPeriod } from "../model/tunkin-period.model"
 
 export default function TunkinPage() {
   const navigate = useNavigate()
 
-  // ✅ LAZY INIT
+  // ✅ LAZY INIT (NO EFFECT)
   const [periods, setPeriods] = useState<TunkinPeriod[]>(() =>
     getTunkinPeriods()
   )
@@ -24,7 +26,7 @@ export default function TunkinPage() {
     return unsubscribe
   }, [])
 
-  // ✅ SORT PERIODE
+  // ✅ DERIVED DATA
   const displayPeriods = useMemo(() => {
     return [...periods].sort((a, b) => {
       if (a.tahun !== b.tahun) return b.tahun - a.tahun

@@ -1,25 +1,32 @@
 import type { TunkinPeriod } from "../model/tunkin-period.model"
 
-const periods: TunkinPeriod[] = [
-  {
-    id: "2025-12",
-    bulan: 12,
-    tahun: 2025,
-    totalPegawai: 3,
-    totalTunkinBersih: 6203200,
-    createdAt: "2024-06-01T10:00:00.000Z",
-  },
-]
+const STORAGE_KEY = "tunkin-periods"
 
-const listeners = new Set<(data: TunkinPeriod[]) => void>()
+/**
+ * Ambil seluruh periode tunkin
+ */
+export function getTunkinPeriods(): TunkinPeriod[] {
+  const raw = localStorage.getItem(STORAGE_KEY)
+  const data: TunkinPeriod[] = raw ? JSON.parse(raw) : []
 
-export function getTunkinPeriods() {
-  return periods
+  return data.sort((a, b) => {
+    if (a.tahun !== b.tahun) return b.tahun - a.tahun
+    return b.bulan - a.bulan
+  })
 }
 
+/**
+ * Subscribe perubahan localStorage (cross page / tab)
+ */
 export function subscribeTunkinPeriods(
   callback: (data: TunkinPeriod[]) => void
-) {
-  listeners.add(callback)
-  return () => listeners.delete(callback)
+): () => void {
+  const handler = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) {
+      callback(getTunkinPeriods())
+    }
+  }
+
+  window.addEventListener("storage", handler)
+  return () => window.removeEventListener("storage", handler)
 }

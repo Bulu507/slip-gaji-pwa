@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/select";
 import toast from "react-hot-toast";
 
-import type { SalaryImportMode, SalaryImportPreviewRow } from "../models/salary-import.model";
+import type {
+  SalaryImportMode,
+  SalaryImportPreviewRow,
+} from "../models/salary-import.model";
 import type { SalaryImportErrorRow } from "../models/salary-import-error.model";
 
 import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant";
@@ -198,18 +201,31 @@ export default function SalaryImportPage() {
           </div>
 
           {/* MODE */}
-          <Select
-            value={mode}
-            onValueChange={(v) => setMode(v as SalaryImportMode)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="replace">Ganti seluruh data</SelectItem>
-              <SelectItem value="update">Update / tambah per NIP</SelectItem>
-            </SelectContent>
-          </Select>
+          <div>
+            <Select
+              value={mode}
+              onValueChange={(v) => setMode(v as SalaryImportMode)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="replace">Ganti seluruh data</SelectItem>
+                <SelectItem value="update">Update / tambah data</SelectItem>
+              </SelectContent>
+            </Select>
+            {mode === "replace" && (
+              <label className="text-sm text-destructive">
+                * Pilihan ini akan mengganti seluruh data tunkin pada periode
+                terpilih
+              </label>
+            )}
+            {mode === "update" && (
+              <label className="text-sm text-destructive">
+                * Pilihan ini hanya akan mengupdate / menambah data tunkin
+              </label>
+            )}
+          </div>
 
           {/* FILE */}
           <Button
