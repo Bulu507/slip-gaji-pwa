@@ -10,6 +10,8 @@ import TunkinPage from "./features/tunkin/pages/TunkinPage"
 import TunkinImportPage from "./features/tunkin/features/import/pages/TunkinImportPage"
 import TunkinDetailPage from "./features/tunkin/features/detail/pages/TunkinDetailPage"
 import EmployeeDetailPage from "./features/employees/features/detail/pages/EmployeeDetailPage"
+import SlipPage from "./features/slip/pages/SlipPage"
+import SlipDetailPage from "./features/slip/features/detail/pages/SlipDetailPage"
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +27,8 @@ export const router = createBrowserRouter([
       { path: "/tunkin", element: <TunkinPage /> },
       { path: "/tunkin/import", element: <TunkinImportPage /> },
       { path: "/tunkin/:periodId", element: <TunkinDetailPage /> },
+      { path: "/slip", element: <SlipPage /> },
+      { path: "/slip/:nip", element: <SlipDetailPage /> },
     ],
   },
 ])

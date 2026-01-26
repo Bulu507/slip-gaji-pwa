@@ -39,6 +39,7 @@ export default function AppLayout() {
         <SidebarItem to="/employees" label="Pegawai" />
         <SidebarItem to="/salary" label="Gaji" />
         <SidebarItem to="/tunkin" label="Tunkin" />
+        <SidebarItem to="/slip" label="Slip Gaji" />
       </aside>
 
       {/* Main Content */}
