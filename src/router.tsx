@@ -12,6 +12,7 @@ import TunkinDetailPage from "./features/tunkin/features/detail/pages/TunkinDeta
 import EmployeeDetailPage from "./features/employees/features/detail/pages/EmployeeDetailPage"
 import SlipPage from "./features/slip/pages/SlipPage"
 import SlipDetailPage from "./features/slip/features/detail/pages/SlipDetailPage"
+import MealAllowancePage from "./features/meal-allowance/pages/MealAllowancePage"
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
       { path: "/tunkin/:periodId", element: <TunkinDetailPage /> },
       { path: "/slip", element: <SlipPage /> },
       { path: "/slip/:nip", element: <SlipDetailPage /> },
+      { path: "/meals", element: <MealAllowancePage /> },
     ],
   },
 ])
