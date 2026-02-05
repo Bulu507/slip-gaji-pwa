@@ -30,6 +30,7 @@ export function PayrollBatchTable({ data }: Props) {
             <tr
               key={batch.id}
               className="hover:bg-gray-50 cursor-pointer"
+              title="Klik untuk lihat detail batch"
               onClick={() =>
                 navigate(`/payroll/batch/${batch.id}`, {
                   state: {

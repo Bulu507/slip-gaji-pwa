@@ -1,9 +1,10 @@
-// features/payroll/presentation/pages/PayrollBatchDetailPage.tsx
-import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { usePayrollBatchDetail } from "../hooks/usePayrollBatchDetail";
 import { PayrollBatchHeader } from "../components/PayrollBatchHeader";
 import { PayrollTransactionTable } from "../components/PayrollTransactionTable";
 import { useDeletePayrollBatch } from "../hooks/useDeletePayrollBatch";
+import { ConfirmDeleteBatchDialog } from "../components/ConfirmDeleteBatchDialog";
+import { Button } from "@/components/ui/button";
 
 export function PayrollBatchDetailPage() {
   const navigate = useNavigate();
@@ -13,47 +14,59 @@ export function PayrollBatchDetailPage() {
   const { deleteBatch, loading: deleting } = useDeletePayrollBatch();
 
   if (!batchId) {
-    return <p>Batch ID tidak valid.</p>;
+    return <div className="p-6 text-red-600">Batch ID tidak valid.</div>;
   }
+
+  const backUrl = (location.state as { from?: string })?.from ?? "/payroll";
 
   async function handleDelete() {
     if (!batchId) return;
 
-    const confirmed = window.confirm(
-      "PERINGATAN!\n\n" +
-        "Anda akan menghapus seluruh batch payroll beserta seluruh transaksi di dalamnya.\n" +
-        "Tindakan ini TIDAK DAPAT dibatalkan.\n\n" +
-        "Apakah Anda yakin?",
-    );
-
-    if (!confirmed) return;
-
     await deleteBatch(batchId);
-    navigate("/payroll");
+    navigate(backUrl);
   }
 
-  const backUrl =
-    (location.state as { from?: string })?.from ?? "/payroll";
-
   return (
-    <div>
-      <Link to={backUrl}>← Kembali ke Batch</Link>
+    <div className="space-y-4">
+      {/* Top action bar */}
+      <div className="flex items-center justify-between">
+        <Button
+          onClick={() => navigate(backUrl)}
+        >
+          ← Kembali
+        </Button>
 
-      {loading && <p>Memuat detail batch...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        <ConfirmDeleteBatchDialog
+          loading={deleting}
+          onConfirm={handleDelete}
+        />
+      </div>
 
+      {/* Loading & error */}
+      {loading && (
+        <div className="p-4 text-muted-foreground">
+          Memuat detail batch payroll…
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 border border-destructive text-destructive rounded-md">
+          {error}
+        </div>
+      )}
+
+      {/* Content */}
       {data && (
-        <>
+        <div className="space-y-4">
           <PayrollBatchHeader batch={data.batch} />
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={{ color: "red", marginBottom: 16 }}
-          >
-            Hapus Batch
-          </button>
-          <PayrollTransactionTable data={data.transactions} />
-        </>
+
+          <div className="space-y-2">
+            <h3 className="text-md font-semibold">
+              Daftar Transaksi Pegawai
+            </h3>
+            <PayrollTransactionTable data={data.transactions} />
+          </div>
+        </div>
       )}
     </div>
   );
