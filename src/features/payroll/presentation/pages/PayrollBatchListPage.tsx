@@ -1,10 +1,37 @@
-// features/payroll/presentation/pages/PayrollBatchListPage.tsx
-import { usePayrollBatches } from "../hooks/usePayrollBatches";
+import { useEffect } from "react";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { usePayrollBatchesByPeriode } from "../hooks/usePayrollBatchesByPeriode";
+import { PayrollBatchFilterBar } from "../components/PayrollBatchFilterBar";
+import { PayrollActiveFilterBadge } from "../components/PayrollActiveFilterBadge";
+import { PayrollEmptyState } from "../components/PayrollEmptyState";
 import { PayrollBatchTable } from "../components/PayrollBatchTable";
-import { Link } from "react-router-dom";
+import { getCurrentPeriode, isValidPeriode } from "@/lib/utils";
 
 export function PayrollBatchListPage() {
-  const { data, loading, error } = usePayrollBatches();
+  const { data, isLoading, error } = usePayrollBatchesByPeriode();
+  const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const periode = params.get("periode");
+
+  // 🔹 auto-init periode (ENTRY POINT AMAN)
+  useEffect(() => {
+    if (!periode) {
+      const current = getCurrentPeriode();
+      setParams({ periode: current }, { replace: true });
+      return;
+    }
+
+    if (!isValidPeriode(periode)) {
+      // invalid → user error (manual URL)
+      navigate("/payroll", { replace: true });
+    }
+  }, [periode, setParams, navigate]);
+
+  // ⛔️ tunggu sampai periode valid
+  if (!periode || !isValidPeriode(periode)) {
+    return null;
+  }
 
   return (
     <div>
@@ -14,10 +41,19 @@ export function PayrollBatchListPage() {
         <Link to="/payroll/import">+ Import Payroll</Link>
       </div>
 
-      {loading && <p>Memuat data...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <PayrollBatchFilterBar />
+      <PayrollActiveFilterBadge />
 
-      {!loading && !error && <PayrollBatchTable data={data} />}
+      {isLoading && <div>Memuat data payroll…</div>}
+      {error && <div className="text-red-600">{error}</div>}
+
+      {!isLoading && !error && data.length === 0 && (
+        <PayrollEmptyState periode={periode} />
+      )}
+
+      {!isLoading && data.length > 0 && (
+        <PayrollBatchTable data={data} />
+      )}
     </div>
   );
 }

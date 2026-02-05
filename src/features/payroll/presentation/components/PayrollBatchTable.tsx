@@ -1,44 +1,62 @@
-// features/payroll/presentation/components/PayrollBatchTable.tsx
+import { useLocation, useNavigate } from "react-router-dom";
 import type { PayrollBatch } from "../../domain/models/payroll-batch.model";
-import { Link } from "react-router-dom";
+import { formatRupiah, formatPeriode, formatDateShort } from "@/lib/utils";
 
 type Props = {
   data: PayrollBatch[];
 };
 
 export function PayrollBatchTable({ data }: Props) {
-  if (data.length === 0) {
-    return <p>Belum ada batch payroll.</p>;
-  }
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Periode</th>
-          <th>Nama Batch</th>
-          <th>Nomor Gaji</th>
-          <th>Tipe Pegawai</th>
-          <th>Jumlah Pegawai</th>
-          <th>Total Netto</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map(batch => (
-          <tr key={batch.id}>
-            <td>{batch.periodeBayar}</td>
-            <td>
-              <Link to={`/payroll/batch/${batch.id}`}>
-                {batch.namaBatch}
-              </Link>
-            </td>
-            <td>{batch.nomorGaji}</td>
-            <td>{batch.tipePegawai}</td>
-            <td>{batch.jumlahTransaksi}</td>
-            <td>{batch.totalNetto.toLocaleString("id-ID")}</td>
+    <div className="border rounded-md overflow-x-auto">
+      <table className="w-full bg-background border-collapse text-sm">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="text-left p-3 border-b">Nomor Gaji</th>
+            <th className="text-left p-3 border-b">Nama Batch</th>
+            <th className="text-left p-3 border-b">Periode Bayar</th>
+            <th className="text-left p-3 border-b">Tipe</th>
+            <th className="text-right p-3 border-b">Transaksi</th>
+            <th className="text-right p-3 border-b">Total Netto</th>
+            <th className="text-left p-3 border-b">Dibuat</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          {data.map((batch) => (
+            <tr
+              key={batch.id}
+              className="hover:bg-gray-50 cursor-pointer"
+              onClick={() =>
+                navigate(`/payroll/batch/${batch.id}`, {
+                  state: {
+                    from: location.pathname + location.search,
+                  },
+                })
+              }
+            >
+              <td className="p-3 border-b font-medium">{batch.nomorGaji}</td>
+              <td className="p-3 border-b">{batch.namaBatch ?? "—"}</td>
+              <td className="p-3 border-b">
+                {formatPeriode(batch.periodeBayar)}
+              </td>
+              <td className="p-3 border-b">{batch.tipePegawai}</td>
+              <td className="p-3 border-b text-right">
+                {batch.jumlahTransaksi}
+              </td>
+              <td className="p-3 border-b text-right font-semibold">
+                {formatRupiah(batch.totalNetto)}
+              </td>
+              <td className="p-3 border-b">
+                {formatDateShort(batch.createdAt)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

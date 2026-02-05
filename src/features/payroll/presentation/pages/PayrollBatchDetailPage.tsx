@@ -1,5 +1,5 @@
 // features/payroll/presentation/pages/PayrollBatchDetailPage.tsx
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { usePayrollBatchDetail } from "../hooks/usePayrollBatchDetail";
 import { PayrollBatchHeader } from "../components/PayrollBatchHeader";
 import { PayrollTransactionTable } from "../components/PayrollTransactionTable";
@@ -7,6 +7,7 @@ import { useDeletePayrollBatch } from "../hooks/useDeletePayrollBatch";
 
 export function PayrollBatchDetailPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { batchId } = useParams<{ batchId: string }>();
   const { data, loading, error } = usePayrollBatchDetail(batchId ?? "");
   const { deleteBatch, loading: deleting } = useDeletePayrollBatch();
@@ -31,9 +32,12 @@ export function PayrollBatchDetailPage() {
     navigate("/payroll");
   }
 
+  const backUrl =
+    (location.state as { from?: string })?.from ?? "/payroll";
+
   return (
     <div>
-      <Link to="/payroll">← Kembali ke Batch</Link>
+      <Link to={backUrl}>← Kembali ke Batch</Link>
 
       {loading && <p>Memuat detail batch...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}

@@ -52,4 +52,26 @@ export class PayrollBatchRepository {
     const db = await getPayrollDB();
     return db.get("payroll_batches", id);
   }
+
+  async findByPeriodeAndTipe(
+    periodeBayar: string,
+    tipePegawai?: EmployeeType,
+  ): Promise<PayrollBatch[]> {
+    const db = await getPayrollDB();
+
+    // step 1: ambil by periode (index)
+    const batches = await db.getAllFromIndex(
+      "payroll_batches",
+      "by_periodeBayar",
+      periodeBayar,
+    );
+
+    // step 2: filter tipe (jika ada)
+    const filtered = tipePegawai
+      ? batches.filter((b) => b.tipePegawai === tipePegawai)
+      : batches;
+
+    // step 3: sort by createdAt desc (UX + audit)
+    return filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
 }
