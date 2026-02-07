@@ -1,7 +1,21 @@
-// features/payroll/presentation/components/PayrollImportForm.tsx
 import { useState } from "react";
 import type { EmployeeType } from "@/lib/constants/employee-type.constant";
 import type { PayrollImportResult } from "../../application/import/payroll-import.types";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant";
+import { YEAR_OPTIONS } from "@/lib/constants/year-option.constant";
+import { toPeriode } from "@/lib/utils";
 
 export type PayrollImportFormInput = {
   file: File;
@@ -16,10 +30,21 @@ type Props = {
   error?: string | null;
 };
 
+function getDefaultPeriode() {
+  const now = new Date();
+  return {
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+  };
+}
+
 export function PayrollImportForm({ onSubmit, loading, error }: Props) {
+  const def = getDefaultPeriode();
+
   const [file, setFile] = useState<File | null>(null);
   const [namaBatch, setNamaBatch] = useState("");
-  const [periodeBayar, setPeriodeBayar] = useState("");
+  const [month, setMonth] = useState<number>(def.month);
+  const [year, setYear] = useState<number>(def.year);
   const [tipePegawai, setTipePegawai] =
     useState<EmployeeType>("PNS");
 
@@ -30,41 +55,118 @@ export function PayrollImportForm({ onSubmit, loading, error }: Props) {
     await onSubmit({
       file,
       namaBatch,
-      periodeBayar,
       tipePegawai,
+      periodeBayar: toPeriode(year, month),
     });
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>Nama Batch</label>
-        <input value={namaBatch} onChange={e => setNamaBatch(e.target.value)} />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Nama Batch */}
+      <div className="space-y-1">
+        <label className="text-sm font-medium">Nama Batch</label>
+        <Input
+          placeholder="Contoh: Gaji Pokok Januari 2026"
+          value={namaBatch}
+          onChange={(e) => setNamaBatch(e.target.value)}
+        />
       </div>
 
-      <div>
-        <label>Periode Bayar (YYYY-MM)</label>
-        <input value={periodeBayar} onChange={e => setPeriodeBayar(e.target.value)} />
+      {/* Periode */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Bulan</label>
+          <Select
+            value={String(month)}
+            onValueChange={(v) => setMonth(Number(v))}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTH_OPTIONS.map((m) => (
+                <SelectItem
+                  key={m.value}
+                  value={String(m.value)}
+                >
+                  {m.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Tahun</label>
+          <Select
+            value={String(year)}
+            onValueChange={(v) => setYear(Number(v))}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {YEAR_OPTIONS.map((y) => (
+                <SelectItem
+                  key={y.value}
+                  value={String(y.value)}
+                >
+                  {y.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div>
-        <label>Tipe Pegawai</label>
-        <select value={tipePegawai} onChange={e => setTipePegawai(e.target.value as EmployeeType)}>
-          <option value="PNS">PNS</option>
-          <option value="TNI">TNI</option>
-          <option value="PPPK">PPPK</option>
-        </select>
+      {/* Tipe Pegawai */}
+      <div className="space-y-1">
+        <label className="text-sm font-medium">Tipe Pegawai</label>
+        <Select
+          value={tipePegawai}
+          onValueChange={(v) => setTipePegawai(v as EmployeeType)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="PNS">PNS</SelectItem>
+            <SelectItem value="TNI">TNI</SelectItem>
+            <SelectItem value="PPPK">PPPK</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <div>
-        <input type="file" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+      {/* File */}
+      <div className="space-y-1">
+        <label className="text-sm font-medium">File Excel Payroll</label>
+        <Input
+          type="file"
+          accept=".xls,.xlsx"
+          onChange={(e) =>
+            setFile(e.target.files?.[0] ?? null)
+          }
+        />
+        <p className="text-xs text-muted-foreground">
+          Gunakan file resmi hasil unduhan aplikasi gaji.
+        </p>
       </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {/* Error */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Mengimpor..." : "Import"}
-      </button>
+      {/* Action */}
+      <Button
+        type="submit"
+        disabled={loading || !file}
+        className="w-full"
+      >
+        {loading ? "Mengimpor data…" : "Import Payroll"}
+      </Button>
     </form>
   );
 }

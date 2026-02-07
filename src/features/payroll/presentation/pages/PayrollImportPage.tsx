@@ -4,6 +4,7 @@ import {
   type PayrollImportFormInput,
 } from "../components/PayrollImportForm";
 import { usePayrollImport } from "../hooks/usePayrollImport";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export function PayrollImportPage() {
   const { importPayroll, loading, error } = usePayrollImport();
@@ -11,24 +12,28 @@ export function PayrollImportPage() {
   async function handleSubmit(
     input: PayrollImportFormInput,
   ): Promise<PayrollImportResult> {
-    const result = await importPayroll(input);
-
-    // nanti:
-    // navigate(`/payroll/batch/${result.batchId}`);
-    console.log("Imported:", result);
-
-    return result; // 🔴 INI WAJIB
+    return await importPayroll(input);
   }
 
   return (
-    <div>
-      <h1>Import Gaji</h1>
+    <div className="w-full space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Import Gaji Payroll</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Import data gaji dari file Excel resmi. Pastikan periode dan tipe
+            pegawai sesuai dengan file yang diunggah.
+          </p>
+        </CardHeader>
 
-      <PayrollImportForm
-        onSubmit={handleSubmit}
-        loading={loading}
-        error={error}
-      />
+        <CardContent>
+          <PayrollImportForm
+            onSubmit={handleSubmit}
+            loading={loading}
+            error={error}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
