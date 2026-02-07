@@ -13,3 +13,15 @@ export type PayrollImportResult = {
   jumlahTransaksi: number;
   totalNetto: number;
 };
+
+export type PayrollImportPreview = {
+  nomorGaji: string;
+  periodeBayar: string;
+  tipePegawai: EmployeeType;
+  totalRows: number;
+  rows: {
+    nip: string;
+    nama: string;
+    gajiBersih: number;
+  }[];
+};

@@ -45,8 +45,7 @@ export function PayrollImportForm({ onSubmit, loading, error }: Props) {
   const [namaBatch, setNamaBatch] = useState("");
   const [month, setMonth] = useState<number>(def.month);
   const [year, setYear] = useState<number>(def.year);
-  const [tipePegawai, setTipePegawai] =
-    useState<EmployeeType>("PNS");
+  const [tipePegawai, setTipePegawai] = useState<EmployeeType>("PNS");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -85,10 +84,7 @@ export function PayrollImportForm({ onSubmit, loading, error }: Props) {
             </SelectTrigger>
             <SelectContent>
               {MONTH_OPTIONS.map((m) => (
-                <SelectItem
-                  key={m.value}
-                  value={String(m.value)}
-                >
+                <SelectItem key={m.value} value={String(m.value)}>
                   {m.label}
                 </SelectItem>
               ))}
@@ -107,10 +103,7 @@ export function PayrollImportForm({ onSubmit, loading, error }: Props) {
             </SelectTrigger>
             <SelectContent>
               {YEAR_OPTIONS.map((y) => (
-                <SelectItem
-                  key={y.value}
-                  value={String(y.value)}
-                >
+                <SelectItem key={y.value} value={String(y.value)}>
                   {y.label}
                 </SelectItem>
               ))}
@@ -141,11 +134,10 @@ export function PayrollImportForm({ onSubmit, loading, error }: Props) {
       <div className="space-y-1">
         <label className="text-sm font-medium">File Excel Payroll</label>
         <Input
+          className="bg-background"
           type="file"
           accept=".xls,.xlsx"
-          onChange={(e) =>
-            setFile(e.target.files?.[0] ?? null)
-          }
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
         <p className="text-xs text-muted-foreground">
           Gunakan file resmi hasil unduhan aplikasi gaji.
@@ -160,11 +152,7 @@ export function PayrollImportForm({ onSubmit, loading, error }: Props) {
       )}
 
       {/* Action */}
-      <Button
-        type="submit"
-        disabled={loading || !file}
-        className="w-full"
-      >
+      <Button type="submit" disabled={loading || !file} className="w-full">
         {loading ? "Mengimpor data…" : "Import Payroll"}
       </Button>
     </form>

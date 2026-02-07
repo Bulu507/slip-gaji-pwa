@@ -59,7 +59,7 @@ export function PayrollBatchDetailPage() {
     <div className="space-y-4">
       {/* Top action bar */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate(backUrl)}>
+        <Button onClick={() => navigate(backUrl)}>
           ← Kembali
         </Button>
 

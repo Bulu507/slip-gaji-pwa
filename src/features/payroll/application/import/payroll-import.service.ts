@@ -10,6 +10,7 @@ import type { PayrollBatch } from "../../domain/models/payroll-batch.model";
 
 import type {
   PayrollImportInput,
+  PayrollImportPreview,
   PayrollImportResult,
 } from "./payroll-import.types";
 import { PayrollImportError } from "./payroll-import.error";
@@ -134,6 +135,48 @@ Periode data Excel: ${excelPeriode}`,
       batchId: batch.id,
       jumlahTransaksi: batch.jumlahTransaksi,
       totalNetto: batch.totalNetto,
+    };
+  }
+
+  async previewPayroll(
+    input: PayrollImportInput,
+  ): Promise<PayrollImportPreview> {
+    const { file, tipePegawai, periodeBayar } = input;
+
+    const rows = await this.parseExcel(file, tipePegawai);
+
+    if (rows.length === 0) {
+      throw new PayrollImportError("File Excel kosong.");
+    }
+
+    const uniqueNogaji = new Set(rows.map((r) => r.nogaji));
+    if (uniqueNogaji.size !== 1) {
+      throw new PayrollImportError(
+        "File mengandung lebih dari satu nomor gaji.",
+      );
+    }
+
+    const nomorGaji = rows[0].nogaji;
+
+    const excelPeriode = this.resolvePeriodeFromExcel(rows[0]);
+    if (excelPeriode !== periodeBayar) {
+      throw new PayrollImportError(
+        `Periode tidak sesuai.
+Periode input: ${periodeBayar}
+Periode data Excel: ${excelPeriode}`,
+      );
+    }
+
+    return {
+      nomorGaji,
+      periodeBayar,
+      tipePegawai,
+      totalRows: rows.length,
+      rows: rows.map((r) => ({
+        nip: r.nip,
+        nama: r.nmpeg,
+        gajiBersih: Number(r.bersih),
+      })),
     };
   }
 
