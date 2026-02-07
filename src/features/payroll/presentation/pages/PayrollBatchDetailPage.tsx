@@ -1,27 +1,56 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 import { usePayrollBatchDetail } from "../hooks/usePayrollBatchDetail";
 import { PayrollBatchHeader } from "../components/PayrollBatchHeader";
 import { PayrollTransactionTable } from "../components/PayrollTransactionTable";
 import { useDeletePayrollBatch } from "../hooks/useDeletePayrollBatch";
 import { ConfirmDeleteBatchDialog } from "../components/ConfirmDeleteBatchDialog";
-import { Button } from "@/components/ui/button";
 
 export function PayrollBatchDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { batchId } = useParams<{ batchId: string }>();
-  const { data, loading, error } = usePayrollBatchDetail(batchId ?? "");
+
+  // 1️⃣ param mentah (SELALU string | undefined)
+  const { batchId: rawBatchId } = useParams<{ batchId: string }>();
+
+  // 2️⃣ hooks TIDAK BOLEH kondisional
+  const { data, loading, error } = usePayrollBatchDetail(rawBatchId ?? "");
   const { deleteBatch, loading: deleting } = useDeletePayrollBatch();
 
-  if (!batchId) {
-    return <div className="p-6 text-red-600">Batch ID tidak valid.</div>;
+  const [keyword, setKeyword] = useState("");
+
+  // 3️⃣ useMemo SELALU dipanggil
+  const filteredTransactions = useMemo(() => {
+    if (!data) return [];
+
+    const q = keyword.trim().toLowerCase();
+    if (!q) return data.transactions;
+
+    return data.transactions.filter((trx) =>
+      trx.nip.toLowerCase().includes(q) ||
+      trx.nama.toLowerCase().includes(q)
+    );
+  }, [data, keyword]);
+
+  // 4️⃣ guard SETELAH semua hook
+  if (!rawBatchId) {
+    return (
+      <div className="p-6 text-destructive">
+        Batch ID tidak valid.
+      </div>
+    );
   }
 
-  const backUrl = (location.state as { from?: string })?.from ?? "/payroll";
+  // 5️⃣ narrow ke string (INI KUNCI TS)
+  const batchId = rawBatchId;
+
+  const backUrl =
+    (location.state as { from?: string })?.from ?? "/payroll";
 
   async function handleDelete() {
-    if (!batchId) return;
-
     await deleteBatch(batchId);
     navigate(backUrl);
   }
@@ -30,9 +59,7 @@ export function PayrollBatchDetailPage() {
     <div className="space-y-4">
       {/* Top action bar */}
       <div className="flex items-center justify-between">
-        <Button
-          onClick={() => navigate(backUrl)}
-        >
+        <Button variant="ghost" onClick={() => navigate(backUrl)}>
           ← Kembali
         </Button>
 
@@ -60,11 +87,23 @@ export function PayrollBatchDetailPage() {
         <div className="space-y-4">
           <PayrollBatchHeader batch={data.batch} />
 
+          {/* Search */}
+          <div className="max-w-sm">
+            <Input
+              placeholder="Cari NIP / Nama Pegawai…"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+            />
+          </div>
+
           <div className="space-y-2">
             <h3 className="text-md font-semibold">
               Daftar Transaksi Pegawai
             </h3>
-            <PayrollTransactionTable data={data.transactions} />
+
+            <PayrollTransactionTable
+              data={filteredTransactions}
+            />
           </div>
         </div>
       )}
