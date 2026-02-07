@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { MONTH_OPTIONS } from "@/lib/constants/month-option.constant";
 
 function labelBulan(month: number) {
@@ -15,14 +16,14 @@ export function PayrollActiveFilterBadge() {
   const [year, month] = periode.split("-").map(Number);
 
   return (
-    <div className="text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded-md inline-flex gap-2">
-      <span>
-        Periode: <strong>{labelBulan(month)} {year}</strong>
-      </span>
+    <div className="flex gap-2">
+      <Badge variant="secondary">
+        Periode: {labelBulan(month)} {year}
+      </Badge>
       {tipe && (
-        <span>
-          • Tipe: <strong>{tipe}</strong>
-        </span>
+        <Badge variant="secondary">
+          Tipe: {tipe}
+        </Badge>
       )}
     </div>
   );

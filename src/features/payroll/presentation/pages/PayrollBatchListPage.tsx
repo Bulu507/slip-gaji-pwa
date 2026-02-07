@@ -1,5 +1,9 @@
+// PayrollBatchListPage.tsx
 import { useEffect } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
 import { usePayrollBatchesByPeriode } from "../hooks/usePayrollBatchesByPeriode";
 import { PayrollBatchFilterBar } from "../components/PayrollBatchFilterBar";
 import { PayrollActiveFilterBadge } from "../components/PayrollActiveFilterBadge";
@@ -17,35 +21,49 @@ export function PayrollBatchListPage() {
   // 🔹 auto-init periode (ENTRY POINT AMAN)
   useEffect(() => {
     if (!periode) {
-      const current = getCurrentPeriode();
-      setParams({ periode: current }, { replace: true });
+      setParams({ periode: getCurrentPeriode() }, { replace: true });
       return;
     }
 
     if (!isValidPeriode(periode)) {
-      // invalid → user error (manual URL)
       navigate("/payroll", { replace: true });
     }
   }, [periode, setParams, navigate]);
 
-  // ⛔️ tunggu sampai periode valid
   if (!periode || !isValidPeriode(periode)) {
     return null;
   }
 
   return (
-    <div>
-      <h1>Batch Payroll</h1>
-
-      <div style={{ marginBottom: 16 }}>
-        <Link to="/payroll/import">+ Import Payroll</Link>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Batch Payroll</h1>
+        <Button onClick={() => navigate("/payroll/import")}>
+          + Import Payroll
+        </Button>
       </div>
 
-      <PayrollBatchFilterBar />
-      <PayrollActiveFilterBadge />
+      {/* Filter */}
+      <Card>
+        <CardContent className="pt-6 space-y-3">
+          <PayrollBatchFilterBar />
+          <PayrollActiveFilterBadge />
+        </CardContent>
+      </Card>
 
-      {isLoading && <div>Memuat data payroll…</div>}
-      {error && <div className="text-red-600">{error}</div>}
+      {/* Content */}
+      {isLoading && (
+        <div className="text-muted-foreground">
+          Memuat data payroll…
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 border border-destructive text-destructive rounded-md">
+          {error}
+        </div>
+      )}
 
       {!isLoading && !error && data.length === 0 && (
         <PayrollEmptyState periode={periode} />

@@ -1,16 +1,21 @@
-type Props = {
-  periode: string;
-};
+import { Card, CardContent } from "@/components/ui/card";
+
+type Props = { periode: string };
 
 export function PayrollEmptyState({ periode }: Props) {
   return (
-    <div className="border rounded-md p-8 text-center text-gray-600">
-      <p className="font-medium">
-        Tidak ada data payroll untuk periode <strong>{periode}</strong>
-      </p>
-      <p className="mt-2 text-sm">
-        Silakan ubah periode atau lakukan import payroll.
-      </p>
-    </div>
+    <Card>
+      <CardContent className="py-10 text-center text-muted-foreground">
+        <div className="font-medium">
+          Tidak ada data payroll
+        </div>
+        <div className="text-sm mt-1">
+          Periode <strong>{periode}</strong>
+        </div>
+        <div className="text-sm mt-2">
+          Silakan ubah periode atau lakukan import payroll.
+        </div>
+      </CardContent>
+    </Card>
   );
 }
