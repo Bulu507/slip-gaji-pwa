@@ -34,9 +34,9 @@ export type EmployeeType = typeof EMPLOYEE_TYPES[number];
  * Aman karena tidak mempengaruhi model inti
  */
 export const EMPLOYEE_TYPE_LABEL: Record<EmployeeType, string> = {
-  PNS: "Pegawai Negeri Sipil",
-  PPPK: "Pegawai Pemerintah dengan Perjanjian Kerja",
-  TNI: "Tentara Nasional Indonesia",
+  PNS: "PNS",
+  PPPK: "PPPK",
+  TNI: "TNI",
   NON_ASN: "Non ASN",
 };
 
