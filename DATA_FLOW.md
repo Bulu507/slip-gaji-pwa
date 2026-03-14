@@ -230,3 +230,36 @@ New data is added through new batches.
 Consolidation Driven Reporting
 
 All reporting is derived from consolidated datasets.
+
+---
+
+# CONSOLIDATION STRATEGY
+
+The consolidation engine uses a full rebuild strategy.
+
+When consolidation runs, the engine reads all payment
+transactions and rebuilds the following datasets:
+
+employee_index
+employee_payments
+
+This ensures the aggregated data is always consistent
+with the underlying transaction stores.
+
+---
+
+# PERIOD SCOPED REBUILD
+
+In practice consolidation may be executed per year.
+
+Example:
+
+Rebuild 2025 data
+Rebuild 2026 data
+
+This approach is aligned with financial and tax
+reporting cycles where each year is processed
+independently.
+
+The rebuild process only reads transactions
+belonging to the selected year.

@@ -221,3 +221,16 @@ data traceability
 batch level debugging
 report validation
 
+---
+
+## CONSOLIDATION EXECUTION MODEL
+
+The consolidation engine rebuilds aggregated
+datasets using a full rebuild strategy.
+
+Derived datasets must always be reproducible
+from transaction stores.
+
+Consolidation may be executed per year
+to align with financial reporting periods.
+

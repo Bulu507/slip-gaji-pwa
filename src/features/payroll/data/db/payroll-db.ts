@@ -1,28 +1,73 @@
 // features/payroll/infrastructure/db/payroll-db.ts
+
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { PayrollBatch } from "../../domain/models/payroll-batch.model";
 import type { PayrollTransaction } from "../../domain/models/payroll-transaction.model";
 
+export interface EmployeeIndex {
+  employeeId: string;
+  name: string;
+
+  rank?: string;
+  position?: string;
+  unit?: string;
+
+  sources: string[];
+
+  lastUpdated: string;
+}
+
+export interface EmployeePayment {
+  id: string;
+
+  employeeId: string;
+  periode: string;
+
+  batchIds: string[];
+
+  sources: Record<string, number>;
+
+  totalIncome: number;
+}
+
 export interface PayrollDBSchema extends DBSchema {
   payroll_batches: {
-    key: string; // id
+    key: string;
     value: PayrollBatch;
     indexes: {
-      "unique_batch_key": [string, string, string]; // tipePegawai, periodeBayar, nomorGaji
-      "by_periodeBayar": string;
-      "by_tipePegawai": string;
-      "by_createdAt": string;
+      unique_batch_key: [string, string, string];
+      by_periodeBayar: string;
+      by_tipePegawai: string;
+      by_createdAt: string;
     };
   };
 
   payroll_transactions: {
-    key: string; // id
+    key: string;
     value: PayrollTransaction;
     indexes: {
-      "by_batchId": string;
-      "by_nip": string;
-      "by_periodeBayar": string;
-      "by_nip_periodeBayar": [string, string];
+      by_batchId: string;
+      by_nip: string;
+      by_periodeBayar: string;
+      by_nip_periodeBayar: [string, string];
+    };
+  };
+
+  employee_index: {
+    key: string;
+    value: EmployeeIndex;
+    indexes: {
+      by_name: string;
+      by_unit: string;
+    };
+  };
+
+  employee_payments: {
+    key: string;
+    value: EmployeePayment;
+    indexes: {
+      by_employeeId: string;
+      by_periode: string;
     };
   };
 }
@@ -48,7 +93,7 @@ export async function getPayrollDB() {
         batchStore.createIndex(
           "unique_batch_key",
           ["tipePegawai", "periodeBayar", "nomorGaji"],
-          { unique: true }
+          { unique: true },
         );
 
         batchStore.createIndex("by_periodeBayar", "periodeBayar");
@@ -63,12 +108,26 @@ export async function getPayrollDB() {
         txStore.createIndex("by_batchId", "batchId");
         txStore.createIndex("by_nip", "nip");
         txStore.createIndex("by_periodeBayar", "periodeBayar");
-        txStore.createIndex(
-          "by_nip_periodeBayar",
-          ["nip", "periodeBayar"]
-        );
+
+        txStore.createIndex("by_nip_periodeBayar", ["nip", "periodeBayar"]);
+
+        // employee_index
+        const employeeIndexStore = db.createObjectStore("employee_index", {
+          keyPath: "employeeId",
+        });
+
+        employeeIndexStore.createIndex("by_name", "name");
+        employeeIndexStore.createIndex("by_unit", "unit");
+
+        // employee_payments
+        const employeePaymentStore = db.createObjectStore("employee_payments", {
+          keyPath: "id",
+        });
+
+        employeePaymentStore.createIndex("by_employeeId", "employeeId");
+        employeePaymentStore.createIndex("by_periode", "periode");
       },
-    }
+    },
   );
 
   return dbInstance;

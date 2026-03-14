@@ -271,3 +271,36 @@ backup/
 Contains legacy code before architecture refactor.
 
 Not part of the current system.
+
+---
+
+# CONSOLIDATION STRATEGY
+
+The consolidation engine rebuilds derived datasets
+from payment transactions.
+
+Strategy:
+
+Full Rebuild Aggregation
+
+When executed, the engine reads transaction stores
+and regenerates:
+
+employee_index
+employee_payments
+
+This avoids incremental synchronization complexity
+and ensures deterministic results.
+
+---
+
+# YEAR BASED PROCESSING
+
+Financial data is primarily processed per year.
+
+Consolidation may be executed for a specific year
+to rebuild only the relevant payment data.
+
+Example:
+
+Rebuild 2025 payroll data.
