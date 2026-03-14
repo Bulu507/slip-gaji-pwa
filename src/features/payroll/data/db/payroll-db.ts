@@ -6,6 +6,9 @@ import type { PayrollTransaction } from "../../domain/models/payroll-transaction
 
 export interface EmployeeIndex {
   employeeId: string;
+
+  employeeType: string;
+
   name: string;
 
   rank?: string;

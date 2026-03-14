@@ -13,6 +13,16 @@ datasets for employee income reporting.
 The system aggregates multiple payment sources into a
 single employee payment dataset.
 
+sources
+
+Map of payment source → total income.
+
+Example:
+
+sources:
+  payroll: 8500000
+  tunkin: 5000000
+
 ---
 
 # VERSION
@@ -121,6 +131,35 @@ employee_payments
 
 ---
 
+### Consolidation Engine Structure
+
+src/core/payment-consolidation/
+
+models/
+  payment-source-transaction.model.ts
+  employee-index.model.ts
+  employee-payment.model.ts
+
+services/
+  read-payroll-transactions.service.ts
+  build-employee-index.service.ts
+  build-employee-payments.service.ts
+
+repositories/
+  employee-index.repository.ts
+  employee-payment.repository.ts
+
+engine/
+  rebuild-consolidation.engine.ts
+
+query/
+  get-employees.service.ts
+  get-employee-payments.service.ts
+  get-employee-payment-by-periode.service.ts
+  get-payments-by-periode.service.ts
+
+---
+
 # CONSOLIDATION DATASETS
 
 ## employee_index
@@ -130,6 +169,7 @@ Employee lookup dataset.
 Fields:
 
 employeeId
+employeeType
 name
 rank
 position
@@ -138,6 +178,9 @@ sources
 lastUpdated
 
 Employee records are derived from payment transactions.
+
+sources contains all payment sources where the employee
+has received income (e.g. payroll, tunkin).
 
 ---
 

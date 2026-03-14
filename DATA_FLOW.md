@@ -77,7 +77,7 @@ Each employee payment becomes a transaction.
 
 Transactions include:
 
-employeeId
+employeeId = nip
 employee snapshot
 payment components
 net income
@@ -87,6 +87,13 @@ Transactions are immutable.
 Transactions cannot be edited.
 
 Corrections require batch deletion and reimport.
+
+Employee identifiers in transaction stores may differ
+between modules (e.g. NIP, NRP).
+
+The consolidation layer normalizes identifiers into:
+
+employeeId
 
 ---
 
@@ -206,6 +213,9 @@ Reports must never read raw transactions directly.
 Consolidation runs when:
 
 import batch completed
+
+The import service triggers the consolidation engine
+after transactions are stored.
 
 or
 

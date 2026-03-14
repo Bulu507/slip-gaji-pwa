@@ -18,6 +18,7 @@ import type { EmployeeType } from "@/lib/constants/employee-type.constant";
 import { parsePNSExcel } from "./parsers/pns.excel-parser";
 import { parseTNIExcel } from "./parsers/tni.excel-parser";
 import { parsePPPKExcel } from "./parsers/pppk.excel-parser";
+import { rebuildConsolidation } from "@/core/payment-consolidation/engine/rebuild-consolidation.engine";
 
 /**
  * NOTE:
@@ -129,7 +130,12 @@ Periode data Excel: ${excelPeriode}`,
     await this.trxRepo.saveMany(transactions);
 
     // ===============================
-    // 7. Result
+    // 7. Trigger consolidation
+    // ===============================
+    await rebuildConsolidation();
+
+    // ===============================
+    // 8. Result
     // ===============================
     return {
       batchId: batch.id,
