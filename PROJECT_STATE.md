@@ -1,21 +1,74 @@
-# FEATURE_MODULE_TEMPLATE.md
+# PROJECT_STATE.md
 
-This document defines the standard structure for implementing new feature modules.
+## PROJECT
 
-All business domains must follow this template.
+Payroll Processing Application  
+Offline-first payroll data processing system.
 
-Examples of modules that will use this template:
+Purpose:
 
-* payroll
-* tunkin
-* uang-makan
-* lembur
+Process payroll Excel exports and produce structured
+datasets for employee income reporting.
+
+The system aggregates multiple payment sources into a
+single employee payment dataset.
 
 ---
 
-# MODULE STRUCTURE
+# VERSION
 
-Each module must follow this structure:
+v0.2 – Consolidation Architecture
+
+Major change:
+
+Introduction of Payment Consolidation Engine.
+
+---
+
+# TECH STACK
+
+Frontend
+
+React  
+TypeScript  
+Vite
+
+Storage
+
+IndexedDB
+
+Architecture
+
+Feature Modular Architecture  
+Domain Driven Design inspired structure
+
+---
+
+# PROJECT STRUCTURE
+
+src/
+
+features/
+core/
+components/
+layouts/
+lib/
+styles/
+
+---
+
+# FEATURE MODULES
+
+Each financial domain is implemented as an isolated feature module.
+
+Example modules:
+
+payroll
+tunkin
+uang_makan (planned)
+lembur (planned)
+
+Structure:
 
 features/module-name/
 
@@ -24,250 +77,197 @@ domain
 data
 presentation
 
-Example:
+---
 
-features/tunkin/
+# CURRENT IMPLEMENTED MODULES
 
-application
-domain
-data
-presentation
+## Payroll Module
+
+features/payroll/
+
+Handles:
+
+import payroll Excel
+store payroll batches
+store payroll transactions
+display payroll transactions
+generate payroll slip
+
+Database stores:
+
+payroll_batches
+payroll_transactions
 
 ---
 
-# DOMAIN LAYER
+# CORE ENGINE
 
-The domain layer defines the core business models.
+## Payment Consolidation Engine
 
-Example structure:
+Location:
 
-domain/models/
+src/core/payment-consolidation/
 
-Batch
-Transaction
-Component
+Purpose:
 
-Example:
+Aggregate payment transactions from all financial modules.
 
-TunkinBatch
-TunkinTransaction
-TunkinComponent
+Produces derived datasets used by the application.
 
-The domain layer should contain:
+Output datasets:
 
-* entity models
-* component definitions
-* domain types
-
-Domain layer must not depend on infrastructure.
+employee_index
+employee_payments
 
 ---
 
-# APPLICATION LAYER
+# CONSOLIDATION DATASETS
 
-Application layer contains business workflows.
+## employee_index
 
-Examples:
-
-Import service
-Query services
-Delete batch service
-
-Example files:
-
-tunkin-import.service.ts
-get-tunkin-batches.service.ts
-delete-tunkin-batch.service.ts
-
-Application layer coordinates:
-
-repositories
-parsers
-domain models
-
----
-
-# DATA LAYER
-
-The data layer handles persistence and infrastructure.
-
-Includes:
-
-database access
-repositories
-database schema
-
-Example structure:
-
-data/db
-data/repositories
-
-Example files:
-
-tunkin-db.ts
-tunkin-batch.repository.ts
-tunkin-transaction.repository.ts
-
-Repositories are responsible for:
-
-saving data
-querying data
-deleting data
-
----
-
-# PRESENTATION LAYER
-
-Presentation layer handles UI.
-
-Includes:
-
-pages
-components
-hooks
-
-Example:
-
-presentation/pages
-
-TunkinBatchListPage
-TunkinImportPage
-TunkinBatchDetailPage
-
----
-
-# IMPORT PATTERN
-
-Each module implements its own import workflow.
-
-Import flow:
-
-Upload file
-Parse Excel
-Preview data
-Validate data
-Commit import
-
-Import services should exist in:
-
-application/import/
-
-Example:
-
-tunkin-import.service.ts
-
----
-
-# DATABASE PATTERN
-
-Each module uses its own IndexedDB stores.
-
-Example:
-
-tunkin_batches
-tunkin_transactions
-
-This keeps domains isolated.
-
----
-
-# TRANSACTION MODEL
-
-All payment modules use the same structure.
-
-Batch
-Transaction
-Components
-
-Example:
-
-TunkinBatch
-→ TunkinTransaction
-→ TunkinComponent[]
-
----
-
-# COMPONENT REGISTRY
-
-Each module defines its own component registry.
-
-Example:
-
-TUNKIN_COMPONENT_REGISTRY
-
-Registry defines:
-
-component code
-component name
-component type
-display order
-
----
-
-# DOCUMENT INTEGRATION
-
-Each module must expose transaction data so it can be consumed by the Payment Consolidation layer.
-
-Example output:
-
-EmployeePaymentSource
+Employee lookup dataset.
 
 Fields:
 
 employeeId
-periode
-components
-sourceType
+name
+rank
+position
+unit
+sources
+lastUpdated
+
+Employee records are derived from payment transactions.
 
 ---
 
-# MODULE ROUTING
+## employee_payments
 
-Each module defines its own routes.
+Aggregated employee income per periode.
+
+Primary Key:
+
+employeeId + "_" + periode
+
+Fields:
+
+id
+employeeId
+periode
+batchIds
+sources
+totalIncome
 
 Example:
 
-/tunkin
-/tunkin/import
-/tunkin/batch/:batchId
+employeeId: 198701012010121001
+periode: 2025-01
+
+batchIds:
+  payroll_batch_2025_01
+
+sources:
+  payroll: 8500000
+  tunkin: 5000000
+
+totalIncome: 13500000
+
+Indexes:
+
+employeeId
+periode
+---
+
+# EMPLOYEE IDENTITY
+
+Employee identity is unified.
+
+employeeId = NIP || NRP
+
+This allows different employee types
+to share a common identifier.
 
 ---
 
-# DEVELOPMENT CHECKLIST
+# DATA PRINCIPLES
 
-Before completing a module ensure:
-
-* domain models implemented
-* repositories implemented
-* import service implemented
-* pages implemented
-* routes registered
-* consolidation integration ready
-
----
-
-# DESIGN PRINCIPLES
-
-Domain Isolation
-
-Each module must remain independent.
-
----
-
-Immutable Financial Data
+Immutable Transactions
 
 Transactions cannot be edited.
 
-Corrections require batch reimport.
+Corrections must use:
+
+delete batch
+reimport batch
 
 ---
 
-Consistent Import Pattern
+Append Only Synchronization
 
-All modules must follow the same import workflow.
+New data is appended through new batches.
+
+Existing transactions must never be modified.
 
 ---
 
-Scalable Architecture
+# CONSOLIDATION ENGINE
 
-New payment modules must be addable without modifying existing modules.
+Type:
+
+Materialized Aggregation Engine
+
+Pipeline:
+
+transactions
+↓
+payment consolidation
+↓
+employee_index
+employee_payments
+
+Consolidation runs:
+
+after import batch
+or manual rebuild
+
+---
+
+# REPORT DATA SOURCE
+
+All reports must read data from:
+
+employee_payments
+
+Reports must never read raw transactions directly.
+
+Examples:
+
+employee slip
+monthly report
+annual report
+
+---
+
+# FUTURE MODULES
+
+Planned payment sources:
+
+tunkin
+uang_makan
+lembur
+
+The consolidation engine must support
+multiple payment sources without modification
+to existing modules.
+
+---
+
+# DEPRECATED CODE
+
+Folder:
+
+backup/
+
+Contains legacy code before architecture refactor.
+
+Not part of the current system.

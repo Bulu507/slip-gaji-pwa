@@ -186,3 +186,38 @@ Examples:
 employee slip
 monthly reports
 annual reports
+
+---
+
+## CONSOLIDATION ENGINE TYPE
+
+The payment consolidation engine uses
+a materialized aggregation model.
+
+Transactions
+↓
+Payment Consolidation
+↓
+employee_index
+employee_payments
+
+These datasets are persisted and used
+as the primary data source for application features.
+
+---
+
+## CONSOLIDATION DATA TRACEABILITY
+
+Consolidated payment records must keep references
+to their originating import batches.
+
+Example:
+
+employee_payments.batchIds
+
+This enables:
+
+data traceability
+batch level debugging
+report validation
+

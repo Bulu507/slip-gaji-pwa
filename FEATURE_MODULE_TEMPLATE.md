@@ -261,3 +261,19 @@ All modules must follow the same import workflow.
 Scalable Architecture
 
 New payment modules must be addable without modifying existing modules.
+
+# CONSOLIDATION SOURCE FORMAT
+
+Every payment module must expose transactions
+in a format readable by the Payment Consolidation Engine.
+
+Example structure:
+
+PaymentSourceTransaction
+
+employeeId
+periode
+source
+batchId
+total
+snapshot

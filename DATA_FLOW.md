@@ -1,31 +1,43 @@
-# DATA FLOW
+# DATA_FLOW.md
 
 ## HIGH LEVEL FLOW
 
-External System
-→ Excel Export
-→ Import Excel
-→ Parse Data
-→ Preview
-→ Validate
-→ Create Batch
-→ Store Transactions
-→ Payment Consolidation
-→ Employee Index Update
-→ Document Generation
+External Payroll System
+↓
+Excel Export
+↓
+Import Excel
+↓
+Parse Data
+↓
+Preview
+↓
+Validate
+↓
+Create Batch
+↓
+Store Transactions
+↓
+Payment Consolidation
+↓
+Update Employee Index
+↓
+Generate Reports
 
 ---
 
 # DATA SOURCE
 
-Income data originates from external payroll systems.
+Income data originates from external systems.
 
 Examples:
 
 Payroll
 Tunkin
 Uang Makan
-Uang Lembur
+Lembur
+
+Each source is imported independently.
 
 ---
 
@@ -39,13 +51,13 @@ Preview Data
 Validate Data
 Confirm Import
 
-Invalid files are rejected.
+If validation fails, import is rejected.
 
 ---
 
 # BATCH CREATION
 
-Each import generates a batch.
+Each import creates a batch.
 
 Batch contains metadata only.
 
@@ -63,86 +75,67 @@ totalNetto
 
 Each employee payment becomes a transaction.
 
-Transactions contain:
+Transactions include:
 
-employee identity
-payment components
+employeeId
 employee snapshot
+payment components
+net income
 
 Transactions are immutable.
 
 Transactions cannot be edited.
 
----
-
-# COMPONENT EXTRACTION
-
-Components are derived from Excel columns.
-
-Examples:
-
-Gapok
-Tunjangan Istri
-Pajak
-Iuran
-
-Component definitions are provided by component registry.
+Corrections require batch deletion and reimport.
 
 ---
 
-# DATABASE STORAGE
+# DATABASE STORES
 
-IndexedDB stores:
+Example stores:
 
 payroll_batches
 payroll_transactions
-employees
 
-Period format:
-
-YYYY-MM
-
-Each financial module maintains its own object stores.
-
-Example:
+Future modules:
 
 tunkin_batches
 tunkin_transactions
+
+Each module maintains its own stores.
 
 ---
 
 # PAYMENT CONSOLIDATION
 
-The consolidation engine aggregates payment transactions
-from all income modules.
+The consolidation engine reads transactions
+from all financial modules.
 
-Sources may include:
+Example sources:
 
 payroll_transactions
 tunkin_transactions
 uang_makan_transactions
 lembur_transactions
 
-The consolidation engine produces derived datasets:
+The engine aggregates data and produces:
 
+employee_index
 employee_payments
-employees
 
-Consolidation must never modify original transactions.
-
-It only reads transaction data and produces aggregated outputs.
+Consolidation does not modify original transactions.
 
 ---
 
-# EMPLOYEE INDEX UPDATE
+# EMPLOYEE INDEX
 
 Employee records are derived from consolidated payment data.
 
-Employee data is not a master HR database.
+Employee data is not a master HR system.
 
-Employees appear when they receive income in any module.
+Employees appear when they receive income.
 
-Employee records may contain:
+Example attributes:
 
 employeeId
 name
@@ -150,68 +143,90 @@ rank
 position
 unit
 
-Employee attributes may be enriched without modifying
-the original transaction records.
+Employee attributes may be enriched with additional fields.
 
 ---
 
-# DOCUMENT GENERATION
+# EMPLOYEE PAYMENTS
 
-Documents are generated from consolidated payment data.
+Employee payments aggregate income per periode.
+
+Granularity:
+
+employeeId + periode
+
+Primary Key:
+
+employeeId + "_" + periode
+
+Fields:
+
+employeeId
+periode
+batchIds
+sources
+totalIncome
+
+Example:
+
+employeeId: 198701012010121001
+periode: 2025-01
+
+batchIds:
+  payroll_batch_2025_01
+
+sources:
+  payroll: 8500000
+
+totalIncome: 8500000
+
+batchIds are stored to allow traceability
+between consolidated data and original import batches.
+
+---
+
+# REPORT GENERATION
+
+Reports must read data from:
+
+employee_payments
 
 Examples:
 
-Employee Slip
-Monthly BPMP
-Yearly BPA1 / A2
+employee slip
+monthly income summary
+annual tax report
 
-Documents must never read raw transactions directly.
-
-All document generators must consume consolidated data.
+Reports must never read raw transactions directly.
 
 ---
 
-# SYNCHRONIZATION FLOW
+# CONSOLIDATION TRIGGER
 
-Operator A
+Consolidation runs when:
 
-Import Excel
-Export Batch JSON
+import batch completed
 
-Shared Storage
+or
 
-Batch files stored
-
-Operator B
-
-Download Batch JSON
-Import Batch
-
-Synchronization is append-only.
-
-Existing batches must never be modified.
+manual rebuild executed
 
 ---
 
-# DESIGN PRINCIPLES
+# SYSTEM PRINCIPLES
 
 Offline First
 
-All processing occurs locally.
+All data processing occurs locally.
 
-Immutable Records
+Immutable Transactions
 
 Transactions cannot be edited.
 
-Append-Only Synchronization
+Append Only Imports
 
-Synchronization adds new batches only.
-
-Feature Modular Design
-
-Each income source is implemented as an isolated module.
+New data is added through new batches.
 
 Consolidation Driven Reporting
 
-All reports and employee data must be derived from
-consolidated payment data.
+All reporting is derived from consolidated datasets.
