@@ -4,10 +4,12 @@ import { EmployeeTable } from "../components/EmployeeTable";
 import { EmployeeFilterBar } from "../components/EmployeeFilterBar";
 import { Button } from "@/components/ui/button";
 import { useSyncEmployees } from "../hooks/useSyncEmployees";
+import { useExportEmployeeTemplate } from "../hooks/useExportEmployeeTemplate";
 
 export function EmployeeListPage() {
   const { employees, loading } = useEmployees();
   const { runSync, loading: syncing } = useSyncEmployees();
+  const { runExport } = useExportEmployeeTemplate();
 
   const [search, setSearch] = useState("");
 
@@ -27,7 +29,9 @@ export function EmployeeListPage() {
         <div className="text-xl font-semibold">Data Pegawai</div>
 
         <div className="flex gap-2">
-          <Button variant="outline">Export Template</Button>
+          <Button variant="outline" onClick={runExport}>
+            Export Template
+          </Button>
 
           <Button variant="outline">Import Excel</Button>
 
