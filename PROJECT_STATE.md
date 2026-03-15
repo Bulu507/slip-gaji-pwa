@@ -125,9 +125,14 @@ Aggregate payment transactions from all financial modules.
 Produces derived datasets used by the application.
 
 Output datasets:
-
 employee_index
 employee_payments
+
+Supporting dataset:
+employee_enrichment
+
+View model:
+EmployeeProfile
 
 ---
 
@@ -347,3 +352,71 @@ to rebuild only the relevant payment data.
 Example:
 
 Rebuild 2025 payroll data.
+
+---
+
+# EMPLOYEE ENRICHMENT DATASET
+
+employee_enrichment
+
+Purpose:
+
+Store additional employee attributes that do not exist
+in payment transaction data.
+
+This dataset allows operators to enrich employee data
+without modifying the original consolidated datasets.
+
+Storage:
+
+IndexedDB
+
+Store name:
+
+employee_enrichment
+
+Purpose:
+
+Store manually maintained employee attributes
+that do not exist in payment transaction data.
+
+Fields:
+
+employeeId (primary key)
+
+nik
+npwpOverride
+position
+unit
+address
+notes
+
+lastUpdated
+
+Characteristics:
+Editable
+Operator managed
+Supports Excel batch import
+Independent from consolidation engine
+
+---
+
+### Employee Profile View
+
+Employee data displayed in the application
+is produced by merging:
+
+employee_index
+employee_enrichment
+
+Merge rules:
+
+position_final = enrichment.position ?? index.position
+unit_final = enrichment.unit ?? index.unit
+npwp_final = enrichment.npwpOverride ?? index.npwp
+
+This merged structure is referred to as:
+
+EmployeeProfile
+
+---

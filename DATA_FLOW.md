@@ -20,9 +20,14 @@ Store Transactions
 ↓
 Payment Consolidation
 ↓
-Update Employee Index
+employee_index
+employee_payments
 ↓
-Generate Reports
+Merge employee_enrichment
+↓
+Employee View
+↓
+UI / Reports
 
 ---
 
@@ -154,6 +159,32 @@ Employee attributes may be enriched with additional fields.
 
 ---
 
+# EMPLOYEE ENRICHMENT
+
+Some employee attributes are not available
+in payment transaction data.
+
+Examples:
+
+NIK
+NPWP correction
+Position
+Unit
+Address
+Notes
+
+These attributes are stored in a separate dataset:
+
+employee_enrichment
+
+The enrichment dataset is maintained by operators
+and may be updated manually or via Excel batch import.
+
+The consolidation engine does not read or modify
+this dataset.
+
+---
+
 # EMPLOYEE PAYMENTS
 
 Employee payments aggregate income per periode.
@@ -189,6 +220,22 @@ totalIncome: 8500000
 
 batchIds are stored to allow traceability
 between consolidated data and original import batches.
+
+---
+
+# EMPLOYEE VIEW MODEL
+
+Employee data displayed in the application
+is produced by merging:
+
+employee_index
+employee_enrichment
+
+Merge rules:
+
+npwp_final = npwpOverride ?? npwp_from_index
+unit_final = unit
+position_final = position
 
 ---
 
@@ -273,3 +320,25 @@ independently.
 
 The rebuild process only reads transactions
 belonging to the selected year.
+
+---
+
+# EMPLOYEE ENRICHMENT IMPORT
+
+Employee enrichment data may be imported using Excel.
+
+Import flow:
+
+Download employee template
+↓
+User fills additional attributes
+↓
+Upload Excel
+↓
+Parse enrichment data
+↓
+Merge with employee_enrichment store
+↓
+Update records
+
+---

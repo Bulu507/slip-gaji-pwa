@@ -33,6 +33,19 @@ export interface EmployeePayment {
   totalIncome: number;
 }
 
+export interface EmployeeEnrichment {
+  employeeId: string;
+
+  nik?: string;
+  npwpOverride?: string;
+  position?: string;
+  unit?: string;
+  address?: string;
+  notes?: string;
+
+  lastUpdated: string;
+}
+
 export interface PayrollDBSchema extends DBSchema {
   payroll_batches: {
     key: string;
@@ -72,6 +85,11 @@ export interface PayrollDBSchema extends DBSchema {
       by_employeeId: string;
       by_periode: string;
     };
+  };
+
+  employee_enrichment: {
+    key: string;
+    value: EmployeeEnrichment;
   };
 }
 
@@ -129,6 +147,12 @@ export async function getPayrollDB() {
 
         employeePaymentStore.createIndex("by_employeeId", "employeeId");
         employeePaymentStore.createIndex("by_periode", "periode");
+
+        if (!db.objectStoreNames.contains("employee_enrichment")) {
+          db.createObjectStore("employee_enrichment", {
+            keyPath: "employeeId",
+          });
+        }
       },
     },
   );
