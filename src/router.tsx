@@ -8,6 +8,7 @@ import { PayrollBatchListPage } from "@/features/payroll/presentation/pages/Payr
 import { PayrollImportPage } from "@/features/payroll/presentation/pages/PayrollImportPage";
 import { PayrollBatchDetailPage } from "@/features/payroll/presentation/pages/PayrollBatchDetailPage";
 import { PayrollSlipPage } from "./features/payroll/presentation/pages/PayrollSlipPage";
+import { EmployeeListPage } from "./features/employee/presentation/pages/EmployeeListPage";
 
 export const router = createBrowserRouter([
   {
@@ -15,11 +16,14 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: <DashboardPage /> },
 
-      // ===== PAYROLL (NEW) =====
+      // ===== PAYROLL =====
       { path: "/payroll", element: <PayrollBatchListPage /> },
       { path: "/payroll/import", element: <PayrollImportPage /> },
       { path: "/payroll/batch/:batchId", element: <PayrollBatchDetailPage /> },
       { path: "/payroll/batch/:batchId/:nip", element: <PayrollSlipPage /> },
+
+      // ===== EMPLOYEE PAGES =====
+      { path: "/employees", element: <EmployeeListPage /> },
     ],
   },
 ]);

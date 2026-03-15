@@ -36,10 +36,10 @@ export default function AppLayout() {
         <h2 className="mb-4 text-lg font-semibold">Payroll App</h2>
 
         <SidebarItem to="/" label="Dashboard" end />
-        {/* <SidebarItem to="/employees" label="Pegawai" /> */}
+        <SidebarItem to="/employees" label="Pegawai" />
         <SidebarItem to="/payroll" label="Gaji" />
-        <SidebarItem to="/tunkin" label="Tunkin" />
-        <SidebarItem to="/slip" label="Slip Gaji" />
+        {/* <SidebarItem to="/tunkin" label="Tunkin" /> */}
+        {/* <SidebarItem to="/slip" label="Slip Gaji" /> */}
       </aside>
 
       {/* Main Content */}

@@ -420,3 +420,67 @@ This merged structure is referred to as:
 EmployeeProfile
 
 ---
+
+# EMPLOYEE MODULE
+
+Purpose:
+
+Provide a unified employee directory derived from
+consolidated payment data.
+
+Data Sources:
+
+employee_index
+employee_payments
+employee_enrichment
+
+Features:
+
+Employee List
+Employee Detail
+Employee Payment History
+Employee Enrichment Management
+
+Employee Enrichment Management:
+
+Export employee template (Excel)
+Import employee enrichment data (Excel)
+Manual sync employee index from consolidation engine
+
+---
+
+# EMPLOYEE ENRICHMENT MANAGEMENT
+
+The employee module supports enrichment management
+through Excel import and export.
+
+Features:
+
+Export Employee Template
+
+Export a list of employees including enrichment fields
+so operators can fill additional employee attributes.
+
+Import Employee Enrichment
+
+Import Excel file containing enrichment data.
+The system merges imported data with the existing
+employee_enrichment dataset.
+
+Merge Strategy:
+
+Empty fields do not overwrite existing values.
+
+Manual Sync Employee
+
+Operators may manually trigger the consolidation engine
+to rebuild employee datasets.
+
+Sync operation runs:
+
+rebuild-consolidation.engine
+
+which regenerates:
+
+employee_index
+employee_payments

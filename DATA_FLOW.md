@@ -342,3 +342,18 @@ Merge with employee_enrichment store
 Update records
 
 ---
+
+# EMPLOYEE ENRICHMENT FLOW
+
+Employee enrichment data can be managed through
+Excel template export and import.
+
+Export Template
+↓
+User fills enrichment fields
+↓
+Import Excel
+↓
+Merge enrichment data
+↓
+Update employee_enrichment store

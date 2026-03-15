@@ -27,3 +27,14 @@ export function formatPeriode(periode: string): string {
 export function formatDateShort(iso: string): string {
   return new Date(iso).toLocaleDateString("id-ID");
 }
+
+/**
+ * Format value untuk ditampilkan, jika value kosong/tidak ada, tampilkan "-"
+ */
+export function displayValue(value?: string | number | null) {
+  if (value === undefined || value === null || value === "") {
+    return "-"
+  }
+
+  return value
+}
